@@ -1,0 +1,546 @@
+﻿@model IEnumerable<ResearchManagement.Domain.Entities.Research>
+@{
+    ViewData["Title"] = "بحوثي";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-file-alt me-2"></i>بحوثي</h2>
+        <p class="text-muted">إدارة وتتبع البحوث المقدمة</p>
+    </div>
+    <div class="col-md-4 text-end">
+        @if (User.IsInRole("Researcher"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>تقديم بحث جديد
+            </a>
+        }
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+@if (Model.Any())
+{
+    <div class="row mb-4">
+        <div class="col-md-3 mb-2">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-0">@Model.Count()</h4>
+                    <small>إجمالي البحوث</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-0">@Model.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Accepted)</h4>
+                    <small>مقبولة</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-0">@Model.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.UnderReview || r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted)</h4>
+                    <small>قيد المراجعة</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-2">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-0">@Model.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Rejected)</h4>
+                    <small>مرفوضة</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- فلاتر البحث -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-filter me-2"></i>فلاتر البحث</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">الحالة</label>
+                        <select class="form-select form-select-sm" id="statusFilter">
+                            <option value="">جميع الحالات</option>
+                            <option value="1">مقدم</option>
+                            <option value="4">قيد التقييم</option>
+                            <option value="10">مقبول</option>
+                            <option value="11">مرفوض</option>
+                            <option value="6">يتطلب تعديلات طفيفة</option>
+                            <option value="7">يتطلب تعديلات جوهرية</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">التخصص</label>
+                        <select class="form-select form-select-sm" id="trackFilter">
+                            <option value="">جميع التخصصات</option>
+                            <option value="1">تقنية المعلومات</option>
+                            <option value="2">أمن المعلومات</option>
+                            <option value="3">الذكاء الاصطناعي</option>
+                            <option value="4">علوم البيانات</option>
+                            <option value="5">هندسة البرمجيات</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">البحث في العنوان</label>
+                        <input type="text" class="form-control form-control-sm" id="searchTitle" placeholder="ابحث في العنوان...">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                                <i class="fas fa-times me-1"></i>مسح الفلاتر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- قائمة البحوث -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">قائمة البحوث</h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" id="toggleView" data-view="table">
+                        <i class="fas fa-th-large me-1"></i>عرض بطاقات
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.Any())
+                {
+                    <!-- عرض الجدول -->
+                    <div id="tableView">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="researchTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="40%">العنوان</th>
+                                        <th width="15%">التخصص</th>
+                                        <th width="15%">الحالة</th>
+                                        <th width="12%">تاريخ التقديم</th>
+                                        <th width="12%">آخر تحديث</th>
+                                        <th width="6%">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var research in Model.OrderByDescending(r => r.SubmissionDate))
+                                    {
+                                        <tr data-status="@((int)research.Status)" data-track="@((int)research.Track)" data-title="@research.Title.ToLower()">
+                                            <td>
+                                                <div>
+                                                    <strong class="text-primary">@research.Title</strong>
+                                                    @if (!string.IsNullOrEmpty(research.TitleEn))
+                                                    {
+                                                        <br>
+
+                                                        <small class="text-muted">@research.TitleEn</small>
+                                                    }
+                                                    @if (research.Authors?.Any() == true)
+                                                    {
+                                                        <br>
+
+                                                        <small class="text-info">
+                                                            <i class="fas fa-users me-1"></i>
+                                                            @string.Join(", ", research.Authors.Take(2).Select(a => $"{a.FirstName} {a.LastName}"))
+                                                            @if (research.Authors.Count() > 2)
+                                                            {
+                                                                <span> وآخرون</span>
+                                                            }
+                                                        </small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info text-white">@GetTrackDisplayName(research.Track)</span>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var statusInfo = GetStatusInfo(research.Status);
+                                                }
+                                                <span class="badge bg-@statusInfo.Color text-white">
+                                                    @statusInfo.Name
+                                                </span>
+                                                @if (research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions ||
+                                               research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions)
+                                                {
+                                                    <br>
+
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>يتطلب إجراء
+                                                    </small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">@research.SubmissionDate.ToString("yyyy/MM/dd")</span>
+                                                <br><small class="text-muted">@research.SubmissionDate.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                @if (research.UpdatedAt.HasValue)
+                                                {
+                                                    <span class="text-muted">@research.UpdatedAt.Value.ToString("yyyy/MM/dd")</span>
+                                                    <br>
+
+                                                    <small class="text-muted">@research.UpdatedAt.Value.ToString("HH:mm")</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group-vertical" role="group">
+                                                    <a href="@Url.Action("Details", new { id = research.Id })"
+                                                       class="btn btn-outline-primary btn-sm mb-1" title="عرض التفاصيل">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+
+                                                    @if (User.IsInRole("Researcher") && (research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted ||
+                                                   research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions ||
+                                                   research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions))
+                                                    {
+                                                        <a href="@Url.Action("Edit", new { id = research.Id })"
+                                                           class="btn btn-outline-warning btn-sm mb-1" title="تعديل">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    }
+
+                                                    @if (research.Files?.Any() == true)
+                                                    {
+                                                        <div class="btn-group dropstart">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                                    data-bs-toggle="dropdown" title="تحميل الملفات">
+                                                                <i class="fas fa-download"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                @foreach (var file in research.Files.Where(f => f.IsActive))
+                                                                {
+                                                                    <li>
+                                                                        <a class="dropdown-item"
+                                                                           href="@Url.Action("DownloadFile", new { fileId = file.Id })">
+                                                                            <i class="fas fa-file-pdf me-2 text-danger"></i>@file.OriginalFileName
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- عرض البطاقات -->
+                    <div id="cardView" style="display: none;">
+                        <div class="row" id="researchCards">
+                            @foreach (var research in Model.OrderByDescending(r => r.SubmissionDate))
+                            {
+                                <div class="col-lg-6 col-xl-4 mb-3 research-card" data-status="@((int)research.Status)" data-track="@((int)research.Track)" data-title="@research.Title.ToLower()">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-start">
+                                            <span class="badge bg-info">@GetTrackDisplayName(research.Track)</span>
+                                            @{
+                                                var statusInfo = GetStatusInfo(research.Status);
+                                            }
+                                            <span class="badge bg-@statusInfo.Color">@statusInfo.Name</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">@research.Title</h6>
+                                            @if (!string.IsNullOrEmpty(research.TitleEn))
+                                            {
+                                                <p class="card-text"><small class="text-muted">@research.TitleEn</small></p>
+                                            }
+
+                                            @if (research.Authors?.Any() == true)
+                                            {
+                                                <p class="card-text">
+                                                    <small class="text-info">
+                                                        <i class="fas fa-users me-1"></i>
+                                                        @string.Join(", ", research.Authors.Take(2).Select(a => $"{a.FirstName} {a.LastName}"))
+                                                        @if (research.Authors.Count() > 2)
+                                                        {
+                                                            <span> وآخرون</span>
+                                                        }
+                                                    </small>
+                                                </p>
+                                            }
+
+                                            <div class="d-flex justify-content-between text-muted small">
+                                                <span><i class="fas fa-calendar me-1"></i>@research.SubmissionDate.ToString("yyyy/MM/dd")</span>
+                                                @if (research.Files?.Any() == true)
+                                                {
+                                                    <span><i class="fas fa-paperclip me-1"></i>@research.Files.Count(f => f.IsActive) ملف</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-transparent">
+                                            <div class="d-flex gap-1">
+                                                <a href="@Url.Action("Details", new { id = research.Id })"
+                                                   class="btn btn-outline-primary btn-sm flex-fill">
+                                                    <i class="fas fa-eye me-1"></i>عرض
+                                                </a>
+
+                                                @if (User.IsInRole("Researcher") && (research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted ||
+                                               research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions ||
+                                               research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions))
+                                                {
+                                                    <a href="@Url.Action("Edit", new { id = research.Id })"
+                                                       class="btn btn-outline-warning btn-sm flex-fill">
+                                                        <i class="fas fa-edit me-1"></i>تعديل
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- رسالة عدم وجود بحوث -->
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-file-alt fa-4x text-muted opacity-50"></i>
+                        </div>
+                        <h4 class="text-muted">لا توجد بحوث مقدمة</h4>
+                        <p class="text-muted mb-4">لم تقم بتقديم أي بحوث بعد</p>
+                        @if (User.IsInRole("Researcher"))
+                        {
+                            <a asp-action="Create" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>تقديم أول بحث
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private (string Name, string Color) GetStatusInfo(ResearchManagement.Domain.Enums.ResearchStatus status)
+    {
+        return status switch
+        {
+            ResearchManagement.Domain.Enums.ResearchStatus.Submitted => ("مقدم", "secondary"),
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderInitialReview => ("قيد المراجعة الأولية", "info"),
+            ResearchManagement.Domain.Enums.ResearchStatus.AssignedForReview => ("موزع للتقييم", "info"),
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderReview => ("قيد التقييم", "warning"),
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderEvaluation => ("تحت المراجعة", "warning"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions => ("تعديلات طفيفة", "warning"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions => ("تعديلات جوهرية", "orange"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RevisionsSubmitted => ("تعديلات مقدمة", "info"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RevisionsUnderReview => ("مراجعة التعديلات", "info"),
+            ResearchManagement.Domain.Enums.ResearchStatus.Accepted => ("مقبول", "success"),
+            ResearchManagement.Domain.Enums.ResearchStatus.Rejected => ("مرفوض", "danger"),
+            ResearchManagement.Domain.Enums.ResearchStatus.Withdrawn => ("منسحب", "dark"),
+            _ => (status.ToString(), "secondary")
+        };
+    }
+
+    private string GetTrackDisplayName(ResearchManagement.Domain.Enums.ResearchTrack track)
+    {
+        return track switch
+        {
+            ResearchManagement.Domain.Enums.ResearchTrack.InformationTechnology => "تقنية المعلومات",
+            ResearchManagement.Domain.Enums.ResearchTrack.InformationSecurity => "أمن المعلومات",
+            ResearchManagement.Domain.Enums.ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
+            ResearchManagement.Domain.Enums.ResearchTrack.DataScience => "علوم البيانات",
+            ResearchManagement.Domain.Enums.ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
+            ResearchManagement.Domain.Enums.ResearchTrack.NetworkingAndCommunications => "الشبكات والاتصالات",
+            ResearchManagement.Domain.Enums.ResearchTrack.CloudComputing => "الحوسبة السحابية",
+            ResearchManagement.Domain.Enums.ResearchTrack.InternetOfThings => "إنترنت الأشياء",
+            ResearchManagement.Domain.Enums.ResearchTrack.ARAndVR => "الواقع المعزز والافتراضي",
+            ResearchManagement.Domain.Enums.ResearchTrack.Blockchain => "البلوك تشين",
+            ResearchManagement.Domain.Enums.ResearchTrack.MachineLearning => "التعلم الآلي",
+            ResearchManagement.Domain.Enums.ResearchTrack.NaturalLanguageProcessing => "معالجة اللغات الطبيعية",
+            ResearchManagement.Domain.Enums.ResearchTrack.HighPerformanceComputing => "الحوسبة عالية الأداء",
+            ResearchManagement.Domain.Enums.ResearchTrack.MobileAppDevelopment => "تطوير التطبيقات المحمولة",
+            ResearchManagement.Domain.Enums.ResearchTrack.DatabaseSystems => "قواعد البيانات",
+            _ => track.ToString()
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // تفعيل التلميحات
+            $('[title]').tooltip();
+
+            // تبديل العرض بين الجدول والبطاقات
+            $('#toggleView').click(function() {
+                var currentView = $(this).data('view');
+                if (currentView === 'table') {
+                    $('#tableView').hide();
+                    $('#cardView').show();
+                    $(this).html('<i class="fas fa-table me-1"></i>عرض جدول').data('view', 'cards');
+                } else {
+                    $('#cardView').hide();
+                    $('#tableView').show();
+                    $(this).html('<i class="fas fa-th-large me-1"></i>عرض بطاقات').data('view', 'table');
+                }
+            });
+
+            // فلاتر البحث
+            function filterResults() {
+                var statusFilter = $('#statusFilter').val();
+                var trackFilter = $('#trackFilter').val();
+                var searchTitle = $('#searchTitle').val().toLowerCase();
+
+                // فلترة الجدول
+                $('#researchTable tbody tr').each(function() {
+                    var row = $(this);
+                    var show = true;
+
+                    // فلتر الحالة
+                    if (statusFilter && row.data('status') != statusFilter) {
+                        show = false;
+                    }
+
+                    // فلتر التخصص
+                    if (trackFilter && row.data('track') != trackFilter) {
+                        show = false;
+                    }
+
+                    // فلتر العنوان
+                    if (searchTitle && !row.data('title').includes(searchTitle)) {
+                        show = false;
+                    }
+
+                    row.toggle(show);
+                });
+
+                // فلترة البطاقات
+                $('.research-card').each(function() {
+                    var card = $(this);
+                    var show = true;
+
+                    // فلتر الحالة
+                    if (statusFilter && card.data('status') != statusFilter) {
+                        show = false;
+                    }
+
+                    // فلتر التخصص
+                    if (trackFilter && card.data('track') != trackFilter) {
+                        show = false;
+                    }
+
+                    // فلتر العنوان
+                    if (searchTitle && !card.data('title').includes(searchTitle)) {
+                        show = false;
+                    }
+
+                    card.toggle(show);
+                });
+
+                // عرض رسالة عدم وجود نتائج
+                var visibleRows = $('#researchTable tbody tr:visible').length;
+                var visibleCards = $('.research-card:visible').length;
+
+                if (visibleRows === 0 && visibleCards === 0 && (@Model.Count() > 0)) {
+                    if (!$('#noResults').length) {
+                        var noResultsHtml = '<div id="noResults" class="text-center py-4">' +
+                            '<i class="fas fa-search fa-2x text-muted mb-3"></i>' +
+                            '<h5 class="text-muted">لا توجد نتائج تطابق معايير البحث</h5>' +
+                            '<p class="text-muted">جرب تعديل الفلاتر أو مسحها</p>' +
+                            '</div>';
+                        $('#tableView, #cardView').append(noResultsHtml);
+                    }
+                } else {
+                    $('#noResults').remove();
+                }
+            }
+
+            // ربط الفلاتر
+            $('#statusFilter, #trackFilter').change(filterResults);
+            $('#searchTitle').on('input', filterResults);
+
+            // مسح الفلاتر
+            $('#clearFilters').click(function() {
+                $('#statusFilter, #trackFilter').val('');
+                $('#searchTitle').val('');
+                filterResults();
+            });
+
+            // تحديث عداد النتائج
+            function updateCounter() {
+                var total = @Model.Count();
+                var visible = $('#researchTable tbody tr:visible').length;
+
+                if (visible !== total) {
+                    if (!$('#resultCounter').length) {
+                        $('.card-header h5').after('<small id="resultCounter" class="text-muted ms-2"></small>');
+                    }
+                    $('#resultCounter').text(`(عرض ${visible} من ${total})`);
+                } else {
+                    $('#resultCounter').remove();
+                }
+            }
+
+            // ربط تحديث العداد مع الفلاتر
+            $('#statusFilter, #trackFilter, #searchTitle').on('change input', function() {
+                setTimeout(updateCounter, 100);
+            });
+        });
+    </script>
+}
+
+<style>
+    .badge.bg-orange {
+        background-color: #fd7e14 !important;
+    }
+
+    .research-card .card {
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+        .research-card .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-color: #007bff;
+        }
+
+    .table th {
+        background-color: #f8f9fc;
+        border-bottom: 2px solid #e9ecef;
+        font-weight: 600;
+        color: #5a5c69;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .research-card {
+        margin-bottom: 1rem;
+    }
+
+    }
+</style>

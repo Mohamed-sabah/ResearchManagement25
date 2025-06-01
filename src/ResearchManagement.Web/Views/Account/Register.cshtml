@@ -1,0 +1,114 @@
+﻿@model ResearchManagement.Application.DTOs.CreateUserDto
+@{
+    ViewData["Title"] = "إنشاء حساب جديد";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                    <h3>إنشاء حساب جديد</h3>
+                    <p class="text-muted">املأ البيانات التالية لإنشاء حساب</p>
+                </div>
+
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FirstName" class="form-label">الاسم الأول *</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LastName" class="form-label">اسم العائلة *</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FirstNameEn" class="form-label">الاسم الأول (إنجليزي)</label>
+                            <input asp-for="FirstNameEn" class="form-control" />
+                            <span asp-validation-for="FirstNameEn" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LastNameEn" class="form-label">اسم العائلة (إنجليزي)</label>
+                            <input asp-for="LastNameEn" class="form-control" />
+                            <span asp-validation-for="LastNameEn" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">البريد الإلكتروني *</label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">كلمة المرور *</label>
+                        <input asp-for="Password" class="form-control" type="password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <div class="form-text">
+                            يجب أن تحتوي على 8 أحرف على الأقل مع أرقام وأحرف كبيرة وصغيرة
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Institution" class="form-label">المؤسسة التعليمية</label>
+                        <input asp-for="Institution" class="form-control" />
+                        <span asp-validation-for="Institution" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="AcademicDegree" class="form-label">الدرجة العلمية</label>
+                            <select asp-for="AcademicDegree" class="form-select">
+                                <option value="">اختر الدرجة العلمية</option>
+                                <option value="بكالوريوس">بكالوريوس</option>
+                                <option value="ماجستير">ماجستير</option>
+                                <option value="دكتوراه">دكتوراه</option>
+                                <option value="أستاذ مساعد">أستاذ مساعد</option>
+                                <option value="أستاذ مشارك">أستاذ مشارك</option>
+                                <option value="أستاذ">أستاذ</option>
+                            </select>
+                            <span asp-validation-for="AcademicDegree" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="OrcidId" class="form-label">رقم ORCID</label>
+                            <input asp-for="OrcidId" class="form-control" placeholder="0000-0000-0000-0000" />
+                            <span asp-validation-for="OrcidId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Role" class="form-label">نوع الحساب *</label>
+                        <select asp-for="Role" class="form-select">
+                            <option value="1">باحث</option>
+                            <option value="2">مقيم</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger"></span>
+                        <div class="form-text">
+                            يمكن للإدارة تعديل نوع الحساب لاحقاً
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                        <i class="fas fa-user-plus me-2"></i>إنشاء الحساب
+                    </button>
+
+                    <div class="text-center">
+                        <p class="mb-2">لديك حساب بالفعل؟</p>
+                        <a asp-action="Login" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

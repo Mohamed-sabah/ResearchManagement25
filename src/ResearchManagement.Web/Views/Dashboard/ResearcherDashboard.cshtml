@@ -1,0 +1,186 @@
+﻿@{
+    ViewData["Title"] = "لوحة تحكم الباحث";
+    var data = Model as dynamic;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-tachometer-alt me-2"></i>لوحة تحكم الباحث</h2>
+        <p class="text-muted">مرحباً بك في نظام إدارة البحوث العلمية</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@data.TotalResearches</h3>
+                        <p class="mb-0">إجمالي البحوث</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-file-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@data.AcceptedResearches</h3>
+                        <p class="mb-0">البحوث المقبولة</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@data.PendingResearches</h3>
+                        <p class="mb-0">قيد المراجعة</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@data.RejectedResearches</h3>
+                        <p class="mb-0">البحوث المرفوضة</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>إجراءات سريعة</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="@Url.Action("Create", "Research")" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-plus fa-2x mb-2"></i>
+                            <h6 class="mb-0">تقديم بحث جديد</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="@Url.Action("Index", "Research")" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-list fa-2x mb-2"></i>
+                            <h6 class="mb-0">عرض بحوثي</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="@Url.Action("Profile", "Account")" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-user-edit fa-2x mb-2"></i>
+                            <h6 class="mb-0">تحديث الملف الشخصي</h6>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Researches -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>آخر البحوث المقدمة</h5>
+                <a href="@Url.Action("Index", "Research")" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+            </div>
+            <div class="card-body">
+                @if (data.RecentResearches != null && data.RecentResearches.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>العنوان</th>
+                                    <th>التخصص</th>
+                                    <th>الحالة</th>
+                                    <th>تاريخ التقديم</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var research in data.RecentResearches)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@research.Title</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@research.Track</span>
+                                        </td>
+                                        <td>
+                                            @{
+                                                var statusClass = research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Accepted ? "success" :
+                                                research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Rejected ? "danger" :
+                                                research.Status == ResearchManagement.Domain.Enums.ResearchStatus.UnderReview ? "warning" : "secondary";
+                                            }
+                                            <span class="status-badge bg-@statusClass text-white">@research.Status</span>
+                                        </td>
+                                        <td>@research.SubmissionDate.ToString("yyyy/MM/dd")</td>
+                                        <td>
+                                            <a href="@Url.Action("Details", "Research", new { id = research.Id })" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i>عرض
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد بحوث مقدمة بعد</h5>
+                        <p class="text-muted">ابدأ بتقديم أول بحث لك</p>
+                        <a href="@Url.Action("Create", "Research")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>تقديم بحث جديد
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add any dashboard-specific JavaScript here
+        console.log('Researcher Dashboard loaded');
+    </script>
+}
