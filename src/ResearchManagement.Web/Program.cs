@@ -1,118 +1,73 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using ResearchManagement.Domain.Entities;
 using ResearchManagement.Infrastructure.Data;
+using ResearchManagement.Application.Interfaces;
 using ResearchManagement.Infrastructure.Repositories;
 using ResearchManagement.Infrastructure.Services;
-using ResearchManagement.Application.Interfaces;
-using System.Reflection;
-using MediatR;
-using Microsoft.AspNetCore.Localization;
-using System.Globalization;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ≈÷«›… «·Œœ„«  ··Õ«ÊÌ
+// ≈÷«›… DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Identity Configuration
+// ≈÷«›… Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
-    // ≈⁄œ«œ«  ﬂ·„… «·„—Ê—
+    // Password settings
     options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
 
-    // ≈⁄œ«œ«  «·ﬁ›·
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-
-    // ≈⁄œ«œ«  «·„” Œœ„
+    // User settings
     options.User.RequireUniqueEmail = true;
-    options.SignIn.RequireConfirmedEmail = false; //  €ÌÌ— ≈·Ï true ›Ì «·≈‰ «Ã
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// ≈÷«›… MediatR -  ÕœÌœ Assembly «·’ÕÌÕ
-var applicationAssembly = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "ResearchManagement.Application.dll"));
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(applicationAssembly));
-
-// ≈÷«›… AutoMapper
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-// Repository Pattern -  ”ÃÌ· Ã„Ì⁄ «·‹ Repositories
+// ≈÷«›… Repositories
 builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// Application Services
+// ≈÷«›… Services
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
-// ≈⁄œ«œ«  «·»—Ìœ «·≈·ﬂ —Ê‰Ì
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("EmailSettings"));
+// ≈÷«›… MediatR
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(ResearchManagement.Application.Commands.Research.CreateResearchCommand).Assembly));
 
-// ≈⁄œ«œ«  —›⁄ «·„·›« 
-builder.Services.Configure<FileUploadSettings>(
-    builder.Configuration.GetSection("FileUploadSettings"));
+// ≈÷«›… AutoMapper
+builder.Services.AddAutoMapper(typeof(ResearchManagement.Application.Mappings.MappingProfile));
 
-// ≈÷«›… Œœ„«  MVC
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add<Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute>();
-});
+// ≈÷«›… FluentValidation
+builder.Services.AddValidatorsFromAssembly(typeof(ResearchManagement.Application.Validators.CreateResearchDtoValidator).Assembly);
 
-// ≈⁄œ«œ«  «·Ã·”…
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(60);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
+// ≈÷«›… Configuration Settings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<FileUploadSettings>(builder.Configuration.GetSection("FileUploadSettings"));
 
-// ≈⁄œ«œ«  «·ﬂÊﬂÌ“
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromDays(7);
-    options.SlidingExpiration = true;
-});
+// ≈÷«›… Controllers „⁄ Views
+builder.Services.AddControllersWithViews();
 
-// ≈⁄œ«œ«  «· ÊÿÌ‰
-builder.Services.Configure<RequestLocalizationOptions>(options =>
-{
-    var supportedCultures = new[]
-    {
-        new CultureInfo("ar-SA"),
-        new CultureInfo("en-US")
-    };
-
-    options.DefaultRequestCulture = new RequestCulture("ar-SA");
-    options.SupportedCultures = supportedCultures;
-    options.SupportedUICultures = supportedCultures;
-});
-
-// ≈÷«›… Œœ„«  ≈÷«›Ì…
-builder.Services.AddMemoryCache();
-builder.Services.AddHttpContextAccessor();
-
-// Œœ„«  «·Œ·›Ì… («Œ Ì«—Ì… - Ì„ﬂ‰  ⁄ÿÌ·Â« „ƒﬁ «)
+// ≈÷«›… Background Services
 builder.Services.AddHostedService<EmailBackgroundService>();
 builder.Services.AddHostedService<DeadlineReminderService>();
 
 var app = builder.Build();
 
-//  ﬂÊÌ‰ „”«— ÿ·»«  HTTP
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -121,41 +76,31 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-// «· ÊÿÌ‰
-app.UseRequestLocalization();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseSession();
-
-//  ﬂÊÌ‰ «·„”«—« 
-app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-//  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰« 
+//  ‘€Ì· Database Seeding
 using (var scope = app.Services.CreateScope())
 {
+    var services = scope.ServiceProvider;
     try
     {
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
         await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred during database seeding");
     }
 }
 

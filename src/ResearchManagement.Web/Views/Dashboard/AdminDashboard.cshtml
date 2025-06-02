@@ -1,0 +1,205 @@
+﻿html@{
+    ViewData["Title"] = "لوحة تحكم الإدارة";
+    var data = Model as dynamic;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-crown me-2"></i>لوحة تحكم الإدارة</h2>
+        <p class="text-muted">إدارة شاملة لنظام البحوث العلمية</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@(data?.TotalUsers ?? 0)</h3>
+                        <p class="mb-0">إجمالي المستخدمين</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@(data?.TotalResearches ?? 0)</h3>
+                        <p class="mb-0">إجمالي البحوث</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-file-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@(data?.CompletedReviews ?? 0)</h3>
+                        <p class="mb-0">المراجعات المكتملة</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@(data?.PendingResearches ?? 0)</h3>
+                        <p class="mb-0">قيد المراجعة</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-0">@(data?.RejectedResearches ?? 0)</h3>
+                        <p class="mb-0">البحوث المرفوضة</p>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tools me-2"></i>إجراءات إدارة المؤتمر</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="@Url.Action("Index", "Research")" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-file-alt fa-2x mb-2"></i>
+                            <h6 class="mb-0">جميع البحوث</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="@Url.Action("Reports", "Conference")" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <h6 class="mb-0">التقارير الشاملة</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <h6 class="mb-0">إدارة المستخدمين</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="@Url.Action("Settings", "Conference")" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
+                            <i class="fas fa-cogs fa-2x mb-2"></i>
+                            <h6 class="mb-0">إعدادات المؤتمر</h6>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Recent Activity -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>إحصائيات البحوث</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="researchStatusChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>آخر التحديثات</h5>
+            </div>
+            <div class="card-body">
+                @if (data?.RecentSubmissions != null && data.RecentSubmissions.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var research in data.RecentSubmissions)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">@research.Title</div>
+                                    <small class="text-muted">@research.SubmissionDate.ToString("yyyy/MM/dd")</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">جديد</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center">لا توجد تحديثات حديثة</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Research Status Chart
+        const ctx = document.getElementById('researchStatusChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['مقبول', 'قيد المراجعة', 'مرفوض', 'مقدم'],
+                datasets: [{
+                    data: [@(data?.AcceptedResearches ?? 0), @(data?.PendingResearches ?? 0), @(data?.RejectedResearches ?? 0), @(data?.SubmittedResearches ?? 0)],
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#6c757d'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+}
