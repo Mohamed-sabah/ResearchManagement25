@@ -1,6 +1,6 @@
-﻿@{
+﻿@model ResearchManagement.Web.Models.ViewModels.ResearcherDashboardViewModel
+@{
     ViewData["Title"] = "لوحة تحكم الباحث";
-    var data = Model as dynamic;
 }
 
 <div class="row mb-4">
@@ -17,7 +17,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@data.TotalResearches</h3>
+                        <h3 class="mb-0">@Model.TotalResearches</h3>
                         <p class="mb-0">إجمالي البحوث</p>
                     </div>
                     <div class="ms-3">
@@ -33,7 +33,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@data.AcceptedResearches</h3>
+                        <h3 class="mb-0">@Model.AcceptedResearches</h3>
                         <p class="mb-0">البحوث المقبولة</p>
                     </div>
                     <div class="ms-3">
@@ -49,7 +49,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@data.PendingResearches</h3>
+                        <h3 class="mb-0">@Model.PendingResearches</h3>
                         <p class="mb-0">قيد المراجعة</p>
                     </div>
                     <div class="ms-3">
@@ -65,7 +65,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@data.RejectedResearches</h3>
+                        <h3 class="mb-0">@Model.RejectedResearches</h3>
                         <p class="mb-0">البحوث المرفوضة</p>
                     </div>
                     <div class="ms-3">
@@ -119,7 +119,7 @@
                 <a href="@Url.Action("Index", "Research")" class="btn btn-sm btn-outline-primary">عرض الكل</a>
             </div>
             <div class="card-body">
-                @if (data.RecentResearches != null && data.RecentResearches.Any())
+                @if (Model.RecentResearches.Any())
                 {
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -133,7 +133,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var research in data.RecentResearches)
+                                @foreach (var research in Model.RecentResearches)
                                 {
                                     <tr>
                                         <td>
@@ -180,7 +180,6 @@
 
 @section Scripts {
     <script>
-        // Add any dashboard-specific JavaScript here
         console.log('Researcher Dashboard loaded');
     </script>
 }

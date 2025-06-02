@@ -3,13 +3,13 @@ using ResearchManagement.Domain.Enums;
 
 namespace ResearchManagement.Web.Models.ViewModels
 {
-    public class ResearchListViewModel
+    public class ResearcherDashboardViewModel
     {
-        public List<Research> Researches { get; set; } = new();
-        public ResearchFilterModel Filter { get; set; } = new();
-        public PaginationModel Pagination { get; set; } = new();
-        public bool CanCreateNew { get; set; } = true;
-        public string ViewTitle { get; set; } = "البحوث";
+        public int TotalResearches { get; set; }
+        public int AcceptedResearches { get; set; }
+        public int PendingResearches { get; set; }
+        public int RejectedResearches { get; set; }
+        public List<Research> RecentResearches { get; set; } = new();
     }
 
     public class ResearchFilterModel

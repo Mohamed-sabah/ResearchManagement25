@@ -1,0 +1,953 @@
+﻿@model ResearchManagement.Web.Models.ViewModels.ConferenceManagerDashboardViewModel
+@{
+    ViewData["Title"] = "لوحة تحكم مدير المؤتمر";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-chart-line me-2 text-primary"></i>لوحة تحكم مدير المؤتمر</h2>
+                <p class="text-muted mb-0">نظرة شاملة على إحصائيات المؤتمر وإدارة النظام</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary btn-sm" id="refreshDashboard">
+                    <i class="fas fa-sync-alt me-1"></i>تحديث البيانات
+                </button>
+                <span class="text-muted small ms-2">آخر تحديث: <span id="lastUpdate">@DateTime.Now.ToString("HH:mm")</span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards Row 1 -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-primary shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">إجمالي البحوث</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalResearches">@Model.TotalResearches</div>
+                        <div class="text-xs text-muted">في جميع التخصصات</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">البحوث المقبولة</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="acceptedResearches">@Model.AcceptedResearches</div>
+                        @if (Model.TotalResearches > 0)
+                        {
+                            var acceptanceRate = Math.Round((decimal)Model.AcceptedResearches / Model.TotalResearches * 100, 1);
+                            <div class="text-xs text-success">نسبة القبول: @acceptanceRate%</div>
+                        }
+                        else
+                        {
+                            <div class="text-xs text-muted">نسبة القبول: 0%</div>
+                        }
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-warning shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">قيد المراجعة</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="pendingResearches">@Model.PendingResearches</div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="progress progress-sm mr-2">
+                                    @if (Model.TotalResearches > 0)
+                                    {
+                                        var progressPercent = Math.Round((decimal)Model.PendingResearches / Model.TotalResearches * 100, 0);
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: @progressPercent%" aria-valuenow="@progressPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-danger shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">البحوث المرفوضة</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="rejectedResearches">@Model.RejectedResearches</div>
+                        @if (Model.TotalResearches > 0)
+                        {
+                            var rejectionRate = Math.Round((decimal)Model.RejectedResearches / Model.TotalResearches * 100, 1);
+                            <div class="text-xs text-danger">نسبة الرفض: @rejectionRate%</div>
+                        }
+                        else
+                        {
+                            <div class="text-xs text-muted">نسبة الرفض: 0%</div>
+                        }
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards Row 2 -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-info shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">إجمالي المستخدمين</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalUsers">@Model.TotalUsers</div>
+                        <div class="text-xs text-muted">مستخدمين نشطين</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-secondary shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">المراجعين النشطين</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalReviewers">@Model.TotalReviewers</div>
+                        <div class="text-xs text-muted">مقيمين معتمدين</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-dark shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">المراجعات المكتملة</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="completedReviews">@Model.CompletedReviews</div>
+                        <div class="text-xs text-muted">تقييمات منجزة</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-light shadow h-100 stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">متوسط وقت المراجعة</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="averageReviewTime">@Model.AverageReviewTime</div>
+                        <div class="text-xs text-muted">يوم</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-stopwatch fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tools me-2"></i>إجراءات إدارة المؤتمر
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="@Url.Action("Index", "Research")" class="btn btn-primary btn-action w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-file-alt fa-2x mb-2"></i>
+                            <h6 class="mb-1">جميع البحوث</h6>
+                            <small class="text-white-50">إدارة ومراجعة البحوث</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="@Url.Action("Reports", "Conference")" class="btn btn-outline-primary btn-action w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <h6 class="mb-1">التقارير الشاملة</h6>
+                            <small class="text-muted">إحصائيات وتقارير</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary btn-action w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <h6 class="mb-1">إدارة المستخدمين</h6>
+                            <small class="text-muted">المستخدمين والأدوار</small>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="@Url.Action("Settings", "Conference")" class="btn btn-outline-warning btn-action w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-cogs fa-2x mb-2"></i>
+                            <h6 class="mb-1">إعدادات المؤتمر</h6>
+                            <small class="text-muted">تكوين النظام</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Recent Activity -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">توزيع حالات البحوث</h6>
+                <div class="dropdown no-arrow">
+                    <button class="btn btn-link btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow">
+                        <a class="dropdown-item" href="#" onclick="exportChart()">
+                            <i class="fas fa-download fa-sm fa-fw mr-2 text-gray-400"></i>
+                            تصدير الرسم البياني
+                        </a>
+                        <a class="dropdown-item" href="#" onclick="refreshChart()">
+                            <i class="fas fa-sync fa-sm fa-fw mr-2 text-gray-400"></i>
+                            تحديث البيانات
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="researchStatusChart" style="height: 320px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">آخر التحديثات</h6>
+            </div>
+            <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                @if (Model.RecentSubmissions.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var research in Model.RecentSubmissions)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start border-0 px-0 py-2">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold text-truncate" style="max-width: 180px;" title="@research.Title">
+                                        <a href="@Url.Action("Details", "Research", new { id = research.Id })" class="text-decoration-none">
+                                            @research.Title
+                                        </a>
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        @research.SubmissionDate.ToString("yyyy/MM/dd HH:mm")
+                                    </small>
+                                    <small class="text-info d-block">
+                                        <i class="fas fa-user me-1"></i>
+                                        @(research.SubmittedBy?.FirstName ?? "غير محدد") @(research.SubmittedBy?.LastName ?? "")
+                                    </small>
+                                </div>
+                                <div class="text-center">
+                                    <span class="badge bg-primary rounded-pill mb-1">جديد</span>
+                                    <div class="small text-muted">@research.SubmissionDate.ToString("HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">لا توجد تحديثات حديثة</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Track Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-layer-group me-2"></i>إحصائيات التخصصات
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TrackStatistics.Any())
+                {
+                    <div class="row">
+                        @foreach (var track in Model.TrackStatistics)
+                        {
+                            <div class="col-xl-4 col-lg-6 mb-3">
+                                <div class="card border-left-primary h-100">
+                                    <div class="card-body py-3">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    @track.TrackName
+                                                </div>
+                                                <div class="h6 mb-2 font-weight-bold text-gray-800">
+                                                    @track.ResearchCount بحث
+                                                </div>
+                                                <div class="row no-gutters">
+                                                    <div class="col-4 text-center">
+                                                        <div class="text-xs text-success font-weight-bold">مقبول</div>
+                                                        <div class="h6 mb-0 text-success">@track.AcceptedCount</div>
+                                                    </div>
+                                                    <div class="col-4 text-center">
+                                                        <div class="text-xs text-warning font-weight-bold">معلق</div>
+                                                        <div class="h6 mb-0 text-warning">@track.PendingCount</div>
+                                                    </div>
+                                                    <div class="col-4 text-center">
+                                                        <div class="text-xs text-danger font-weight-bold">مرفوض</div>
+                                                        <div class="h6 mb-0 text-danger">@track.RejectedCount</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-folder fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد إحصائيات متاحة</h5>
+                        <p class="text-muted">لم يتم تقديم بحوث في أي تخصص بعد</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Users Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user-plus me-2"></i>المستخدمين الجدد
+                </h6>
+                <a href="@Url.Action("Users", "Admin")" class="btn btn-primary btn-sm">
+                    <i class="fas fa-list me-1"></i>عرض الكل
+                </a>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentUsers.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="25%">الاسم</th>
+                                    <th width="25%">البريد الإلكتروني</th>
+                                    <th width="20%">المؤسسة</th>
+                                    <th width="10%">الدور</th>
+                                    <th width="12%">تاريخ التسجيل</th>
+                                    <th width="8%">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var user in Model.RecentUsers)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-3">
+                                                    <div class="avatar-title bg-primary text-white rounded-circle">
+                                                        @user.FirstName.Substring(0, 1)@user.LastName.Substring(0, 1)
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <strong>@user.FirstName @user.LastName</strong>
+                                                    @if (!string.IsNullOrEmpty(user.FirstNameEn))
+                                                    {
+                                                        <br>
+                                                        <small class="text-muted">@user.FirstNameEn @user.LastNameEn</small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="mailto:@user.Email" class="text-decoration-none">@user.Email</a>
+                                        </td>
+                                        <td>
+                                            <span title="@(user.Institution ?? "غير محدد")">
+                                                @((user.Institution?.Length > 20 ? user.Institution.Substring(0, 20) + "..." : user.Institution) ?? "غير محدد")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info text-white">@GetRoleDisplayName(user.Role)</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">@user.CreatedAt.ToString("yyyy/MM/dd")</span>
+                                            <br><small class="text-muted">@user.CreatedAt.ToString("HH:mm")</small>
+                                        </td>
+                                        <td>
+                                            @if (user.IsActive)
+                                            {
+                                                <span class="badge bg-success">نشط</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">غير نشط</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا توجد مستخدمين جدد</h5>
+                        <p class="text-muted">لم يتم تسجيل مستخدمين جدد مؤخراً</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetRoleDisplayName(ResearchManagement.Domain.Enums.UserRole role)
+    {
+        return role switch
+        {
+            ResearchManagement.Domain.Enums.UserRole.Researcher => "باحث",
+            ResearchManagement.Domain.Enums.UserRole.Reviewer => "مقيم",
+            ResearchManagement.Domain.Enums.UserRole.TrackManager => "مدير تراك",
+            ResearchManagement.Domain.Enums.UserRole.ConferenceManager => "مدير المؤتمر",
+            ResearchManagement.Domain.Enums.UserRole.SystemAdmin => "مدير النظام",
+            _ => role.ToString()
+        };
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Global variables
+        let researchChart;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeChart();
+            setupEventListeners();
+            startAutoRefresh();
+            animateStatistics();
+            setupCardInteractions();
+        });
+
+        // Chart initialization
+        function initializeChart() {
+            const ctx = document.getElementById('researchStatusChart').getContext('2d');
+
+            const chartData = {
+                labels: ['مقبول', 'قيد المراجعة', 'مرفوض', 'مقدم'],
+                datasets: [{
+                    data: [
+        @Model.AcceptedResearches,
+        @Model.PendingResearches,
+        @Model.RejectedResearches,
+        @Model.SubmittedResearches
+                    ],
+                    backgroundColor: [
+                        '#28a745', // أخضر للمقبول
+                        '#ffc107', // أصفر للمعلق
+                        '#dc3545', // أحمر للمرفوض
+                        '#6c757d'  // رمادي للمقدم
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    hoverOffset: 8,
+                    hoverBorderWidth: 4
+                }]
+            };
+
+            const config = {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 14,
+                                    family: 'Tajawal, Arial, sans-serif'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${label}: ${value} بحث (${percentage}%)`;
+                                }
+                            },
+                            titleFont: {
+                                family: 'Tajawal, Arial, sans-serif'
+                            },
+                            bodyFont: {
+                                family: 'Tajawal, Arial, sans-serif'
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    animation: {
+                        animateScale: true,
+                        duration: 1500
+                    }
+                }
+            };
+
+            researchChart = new Chart(ctx, config);
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            // Refresh dashboard button
+            document.getElementById('refreshDashboard').addEventListener('click', function() {
+                refreshDashboard();
+            });
+
+            // Stats cards hover effects
+            document.querySelectorAll('.stats-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
+            });
+        }
+
+        // Auto refresh functionality
+        function startAutoRefresh() {
+            setInterval(function() {
+                refreshQuickStats();
+            }, 300000); // كل 5 دقائق
+        }
+
+        // Refresh dashboard data
+        function refreshDashboard() {
+            const button = document.getElementById('refreshDashboard');
+            const icon = button.querySelector('i');
+
+            // Show loading state
+            button.disabled = true;
+            icon.classList.add('fa-spin');
+
+            fetch('/Dashboard/RefreshDashboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDashboardStats(data.data);
+                    updateLastRefreshTime();
+                    showNotification('تم تحديث البيانات بنجاح', 'success');
+                } else {
+                    showNotification('حدث خطأ في تحديث البيانات', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing dashboard:', error);
+                showNotification('حدث خطأ في الاتصال', 'error');
+            })
+            .finally(() => {
+                // Reset button state
+                button.disabled = false;
+                icon.classList.remove('fa-spin');
+            });
+        }
+
+        // Quick stats refresh
+        function refreshQuickStats() {
+            fetch('/Dashboard/GetQuickStats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDashboardStats(data.data);
+                    updateLastRefreshTime();
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing quick stats:', error);
+            });
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats(data) {
+            if (data.totalResearches !== undefined) {
+                document.getElementById('totalResearches').textContent = data.totalResearches;
+            }
+            if (data.acceptedResearches !== undefined) {
+                document.getElementById('acceptedResearches').textContent = data.acceptedResearches;
+            }
+            if (data.pendingResearches !== undefined) {
+                document.getElementById('pendingResearches').textContent = data.pendingResearches;
+            }
+            if (data.rejectedResearches !== undefined) {
+                document.getElementById('rejectedResearches').textContent = data.rejectedResearches;
+            }
+            if (data.totalUsers !== undefined) {
+                document.getElementById('totalUsers').textContent = data.totalUsers;
+            }
+
+            // Update chart if needed
+            if (researchChart && data.acceptedResearches !== undefined) {
+                researchChart.data.datasets[0].data = [
+                    data.acceptedResearches || 0,
+                    data.pendingResearches || 0,
+                    data.rejectedResearches || 0,
+                    (data.totalResearches || 0) - (data.acceptedResearches || 0) - (data.pendingResearches || 0) - (data.rejectedResearches || 0)
+                ];
+                researchChart.update('active');
+            }
+        }
+
+        // Update last refresh time
+        function updateLastRefreshTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-SA', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+
+        // Chart export functionality
+        function exportChart() {
+            if (researchChart) {
+                const link = document.createElement('a');
+                link.download = 'research-statistics.png';
+                link.href = researchChart.toBase64Image();
+                link.click();
+                showNotification('تم تصدير الرسم البياني بنجاح', 'success');
+            }
+        }
+
+        // Refresh chart data
+        function refreshChart() {
+            if (researchChart) {
+                researchChart.update('active');
+                showNotification('تم تحديث الرسم البياني', 'success');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.dashboard-notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show dashboard-notification`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            `;
+
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        // Statistics animation
+        function animateStatistics() {
+            const statsElements = document.querySelectorAll('.stats-card .h4');
+
+            statsElements.forEach((element, index) => {
+                const finalValue = parseInt(element.textContent) || 0;
+                element.textContent = '0';
+
+                setTimeout(() => {
+                    animateNumber(element, 0, finalValue, 1000);
+                }, index * 200);
+            });
+        }
+
+        // Number animation helper
+        function animateNumber(element, start, end, duration) {
+            const startTime = performance.now();
+
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                const currentValue = Math.floor(start + (end - start) * easeOutCubic);
+
+                element.textContent = currentValue.toLocaleString('ar-SA');
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+
+            requestAnimationFrame(updateNumber);
+        }
+
+        // Card interactions
+        function setupCardInteractions() {
+            document.querySelectorAll('.stats-card').forEach(card => {
+                card.style.cursor = 'pointer';
+
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        }
+
+        // Responsive chart handling
+        window.addEventListener('resize', function() {
+            if (researchChart) {
+                researchChart.resize();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                refreshDashboard();
+            }
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                exportChart();
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Custom Dashboard Styles */
+        .border-left-primary {
+            border-left: 4px solid #4e73df !important;
+        }
+
+        .border-left-success {
+            border-left: 4px solid #1cc88a !important;
+        }
+
+        .border-left-info {
+            border-left: 4px solid #36b9cc !important;
+        }
+
+        .border-left-warning {
+            border-left: 4px solid #f6c23e !important;
+        }
+
+        .border-left-danger {
+            border-left: 4px solid #e74a3b !important;
+        }
+
+        .border-left-secondary {
+            border-left: 4px solid #858796 !important;
+        }
+
+        .border-left-dark {
+            border-left: 4px solid #5a5c69 !important;
+        }
+
+        .border-left-light {
+            border-left: 4px solid #eaecf4 !important;
+        }
+
+        .text-xs {
+            font-size: 0.75rem !important;
+        }
+
+        .text-gray-800 {
+            color: #5a5c69 !important;
+        }
+
+        .text-gray-300 {
+            color: #dddfeb !important;
+        }
+
+        .stats-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e3e6f0;
+        }
+
+            .stats-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+            }
+
+        .btn-action {
+            min-height: 120px;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+        }
+
+            .btn-action:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            }
+
+        .card {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            border-radius: 15px 15px 0 0 !important;
+        }
+
+        .progress-sm {
+            height: 0.5rem;
+        }
+
+        .avatar-sm {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .avatar-title {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .chart-area {
+            position: relative;
+            height: 320px;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #5a5c69;
+            background-color: #f8f9fc;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.6rem;
+        }
+
+        /* Animation Classes */
+        .fadeInUp {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Mobile Responsiveness */
+        
+
+        /* Print Styles */
+ 
+
+        }
+    </style>
+}
+
+<!-- Anti-forgery token for AJAX requests -->
+@Html.AntiForgeryToken()

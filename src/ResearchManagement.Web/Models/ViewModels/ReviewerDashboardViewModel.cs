@@ -2,13 +2,13 @@
 using ResearchManagement.Domain.Enums;
 namespace ResearchManagement.Web.Models.ViewModels
 {
-    public class ReviewListViewModel
+    public class ReviewerDashboardViewModel
     {
-        public List<Review> Reviews { get; set; } = new();
-        public ReviewFilterModel Filter { get; set; } = new();
-        public PaginationModel Pagination { get; set; } = new();
-        public string ViewTitle { get; set; } = "المراجعات";
-        public ReviewerStatistics Statistics { get; set; } = new();
+        public int TotalReviews { get; set; }
+        public int CompletedReviews { get; set; }
+        public int PendingReviews { get; set; }
+        public int OverdueReviews { get; set; }
+        public List<Review> RecentReviews { get; set; } = new();
     }
 
     public class ReviewFilterModel
