@@ -1,6 +1,6 @@
-﻿@model ResearchManagement.Web.Models.ViewModels.ConferenceManagerDashboardViewModel
-@{
+﻿@{
     ViewData["Title"] = "لوحة تحكم مدير المؤتمر";
+    var data = Model as dynamic;
 }
 
 <div class="row mb-4">
@@ -28,7 +28,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">إجمالي البحوث</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalResearches">@Model.TotalResearches</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalResearches">@(data?.TotalResearches ?? 0)</div>
                         <div class="text-xs text-muted">في جميع التخصصات</div>
                     </div>
                     <div class="col-auto">
@@ -45,10 +45,10 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">البحوث المقبولة</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="acceptedResearches">@Model.AcceptedResearches</div>
-                        @if (Model.TotalResearches > 0)
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="acceptedResearches">@(data?.AcceptedResearches ?? 0)</div>
+                        @if (data?.TotalResearches > 0)
                         {
-                            var acceptanceRate = Math.Round((decimal)Model.AcceptedResearches / Model.TotalResearches * 100, 1);
+                            var acceptanceRate = Math.Round((decimal)(data?.AcceptedResearches ?? 0) / (data?.TotalResearches ?? 1) * 100, 1);
                             <div class="text-xs text-success">نسبة القبول: @acceptanceRate%</div>
                         }
                         else
@@ -70,13 +70,13 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">قيد المراجعة</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="pendingResearches">@Model.PendingResearches</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="pendingResearches">@(data?.PendingResearches ?? 0)</div>
                         <div class="row no-gutters align-items-center">
                             <div class="col-auto">
                                 <div class="progress progress-sm mr-2">
-                                    @if (Model.TotalResearches > 0)
+                                    @if (data?.TotalResearches > 0)
                                     {
-                                        var progressPercent = Math.Round((decimal)Model.PendingResearches / Model.TotalResearches * 100, 0);
+                                        var progressPercent = Math.Round((decimal)(data?.PendingResearches ?? 0) / (data?.TotalResearches ?? 1) * 100, 0);
                                         <div class="progress-bar bg-warning" role="progressbar" style="width: @progressPercent%" aria-valuenow="@progressPercent" aria-valuemin="0" aria-valuemax="100"></div>
                                     }
                                     else
@@ -101,10 +101,10 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">البحوث المرفوضة</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="rejectedResearches">@Model.RejectedResearches</div>
-                        @if (Model.TotalResearches > 0)
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="rejectedResearches">@(data?.RejectedResearches ?? 0)</div>
+                        @if (data?.TotalResearches > 0)
                         {
-                            var rejectionRate = Math.Round((decimal)Model.RejectedResearches / Model.TotalResearches * 100, 1);
+                            var rejectionRate = Math.Round((decimal)(data?.RejectedResearches ?? 0) / (data?.TotalResearches ?? 1) * 100, 1);
                             <div class="text-xs text-danger">نسبة الرفض: @rejectionRate%</div>
                         }
                         else
@@ -129,7 +129,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">إجمالي المستخدمين</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalUsers">@Model.TotalUsers</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalUsers">@(data?.TotalUsers ?? 0)</div>
                         <div class="text-xs text-muted">مستخدمين نشطين</div>
                     </div>
                     <div class="col-auto">
@@ -146,7 +146,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">المراجعين النشطين</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalReviewers">@Model.TotalReviewers</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalReviewers">@(data?.TotalReviewers ?? 0)</div>
                         <div class="text-xs text-muted">مقيمين معتمدين</div>
                     </div>
                     <div class="col-auto">
@@ -163,7 +163,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">المراجعات المكتملة</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="completedReviews">@Model.CompletedReviews</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="completedReviews">@(data?.CompletedReviews ?? 0)</div>
                         <div class="text-xs text-muted">تقييمات منجزة</div>
                     </div>
                     <div class="col-auto">
@@ -180,7 +180,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">متوسط وقت المراجعة</div>
-                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="averageReviewTime">@Model.AverageReviewTime</div>
+                        <div class="h4 mb-0 font-weight-bold text-gray-800" id="averageReviewTime">@(data?.AverageReviewTime ?? 0)</div>
                         <div class="text-xs text-muted">يوم</div>
                     </div>
                     <div class="col-auto">
@@ -273,10 +273,10 @@
                 <h6 class="m-0 font-weight-bold text-primary">آخر التحديثات</h6>
             </div>
             <div class="card-body" style="max-height: 350px; overflow-y: auto;">
-                @if (Model.RecentSubmissions.Any())
+                @if (data?.RecentSubmissions != null && data.RecentSubmissions.Any())
                 {
                     <div class="list-group list-group-flush">
-                        @foreach (var research in Model.RecentSubmissions)
+                        @foreach (var research in data.RecentSubmissions)
                         {
                             <div class="list-group-item d-flex justify-content-between align-items-start border-0 px-0 py-2">
                                 <div class="ms-2 me-auto">
@@ -324,10 +324,10 @@
                 </h6>
             </div>
             <div class="card-body">
-                @if (Model.TrackStatistics.Any())
+                @if (data?.TrackStatistics != null && data.TrackStatistics.Any())
                 {
                     <div class="row">
-                        @foreach (var track in Model.TrackStatistics)
+                        @foreach (var track in data.TrackStatistics)
                         {
                             <div class="col-xl-4 col-lg-6 mb-3">
                                 <div class="card border-left-primary h-100">
@@ -391,7 +391,7 @@
                 </a>
             </div>
             <div class="card-body">
-                @if (Model.RecentUsers.Any())
+                @if (data?.RecentUsers != null && data.RecentUsers.Any())
                 {
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -406,7 +406,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var user in Model.RecentUsers)
+                                @foreach (var user in data.RecentUsers)
                                 {
                                     <tr>
                                         <td>
@@ -421,6 +421,7 @@
                                                     @if (!string.IsNullOrEmpty(user.FirstNameEn))
                                                     {
                                                         <br>
+
                                                         <small class="text-muted">@user.FirstNameEn @user.LastNameEn</small>
                                                     }
                                                 </div>
@@ -508,10 +509,10 @@
                 labels: ['مقبول', 'قيد المراجعة', 'مرفوض', 'مقدم'],
                 datasets: [{
                     data: [
-        @Model.AcceptedResearches,
-        @Model.PendingResearches,
-        @Model.RejectedResearches,
-        @Model.SubmittedResearches
+        @(data?.AcceptedResearches ?? 0),
+        @(data?.PendingResearches ?? 0),
+        @(data?.RejectedResearches ?? 0),
+        @(data?.SubmittedResearches ?? 0)
                     ],
                     backgroundColor: [
                         '#28a745', // أخضر للمقبول
