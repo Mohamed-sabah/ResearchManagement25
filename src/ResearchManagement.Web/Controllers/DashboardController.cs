@@ -44,7 +44,7 @@ namespace ResearchManagement.Web.Controllers
 
                 _logger.LogInformation("Loading dashboard for user {UserId} with role {Role}", user.Id, user.Role);
 
-                ViewData["UserRole"] = user.Role;
+                ViewData["UserRole"] = GetRoleDisplayName(user.Role);
                 ViewData["UserName"] = $"{user.FirstName} {user.LastName}";
 
                 return user.Role switch
@@ -52,7 +52,8 @@ namespace ResearchManagement.Web.Controllers
                     UserRole.Researcher => await ResearcherDashboard(),
                     UserRole.Reviewer => await ReviewerDashboard(),
                     UserRole.TrackManager => await TrackManagerDashboard(),
-                    UserRole.ConferenceManager or UserRole.SystemAdmin => await ConferenceManagerDashboard(),
+                    UserRole.ConferenceManager => await ConferenceManagerDashboard(),
+                    UserRole.SystemAdmin => await AdminDashboard(), // إضافة حالة الأدمن
                     _ => View("UnknownRole")
                 };
             }
@@ -60,6 +61,71 @@ namespace ResearchManagement.Web.Controllers
             {
                 _logger.LogError(ex, "Error loading dashboard");
                 AddErrorMessage("حدث خطأ في تحميل لوحة التحكم");
+                return View("Error");
+            }
+        }
+
+        private async Task<IActionResult> AdminDashboard()
+        {
+            try
+            {
+                var allResearches = await _context.Researches
+                    .Include(r => r.SubmittedBy)
+                    .Include(r => r.Authors)
+                    .ToListAsync();
+
+                var allUsers = await _context.Users
+                    .Where(u => u.IsActive && !u.IsDeleted)
+                    .OrderByDescending(u => u.CreatedAt)
+                    .ToListAsync();
+
+                var allReviews = await _context.Reviews
+                    .Where(r => r.IsCompleted)
+                    .ToListAsync();
+
+                var trackStatistics = allResearches
+                    .GroupBy(r => r.Track)
+                    .Select(g => new TrackStatistic
+                    {
+                        TrackName = GetTrackDisplayName(g.Key),
+                        ResearchCount = g.Count(),
+                        AcceptedCount = g.Count(r => r.Status == ResearchStatus.Accepted),
+                        RejectedCount = g.Count(r => r.Status == ResearchStatus.Rejected),
+                        PendingCount = g.Count(r => r.Status == ResearchStatus.UnderReview ||
+                                              r.Status == ResearchStatus.UnderEvaluation)
+                    })
+                    .OrderByDescending(x => x.ResearchCount)
+                    .ToList();
+
+                var averageReviewTime = allReviews.Any() ?
+                    allReviews.Where(r => r.CompletedDate.HasValue)
+                             .Average(r => (r.CompletedDate!.Value - r.AssignedDate).TotalDays) : 0;
+
+                var viewModel = new ConferenceManagerDashboardViewModel
+                {
+                    TotalResearches = allResearches.Count,
+                    AcceptedResearches = allResearches.Count(r => r.Status == ResearchStatus.Accepted),
+                    PendingResearches = allResearches.Count(r => r.Status == ResearchStatus.UnderReview ||
+                                                                r.Status == ResearchStatus.UnderEvaluation ||
+                                                                r.Status == ResearchStatus.AssignedForReview),
+                    RejectedResearches = allResearches.Count(r => r.Status == ResearchStatus.Rejected),
+                    SubmittedResearches = allResearches.Count(r => r.Status == ResearchStatus.Submitted),
+                    TotalUsers = allUsers.Count,
+                    TotalReviewers = allUsers.Count(u => u.Role == UserRole.Reviewer),
+                    CompletedReviews = allReviews.Count,
+                    AverageReviewTime = Math.Round(averageReviewTime, 1),
+                    RecentSubmissions = allResearches.OrderByDescending(r => r.SubmissionDate).Take(10).ToList(),
+                    RecentUsers = allUsers.Take(5).ToList(),
+                    TrackStatistics = trackStatistics
+                };
+
+                _logger.LogInformation("Admin dashboard loaded successfully");
+                return View("AdminDashboard", viewModel); // تحديد اسم الـ View صراحة
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading admin dashboard");
+                AddErrorMessage("حدث خطأ في تحميل لوحة تحكم مدير النظام");
                 return View("Error");
             }
         }

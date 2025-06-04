@@ -103,7 +103,15 @@ namespace ResearchManagement.Infrastructure.Repositories
 
         public async Task AddAsync(Research research)
         {
-            await _context.Researches.AddAsync(research);
+            try
+            {
+                await _context.Researches.AddAsync(research);
+                // لا نستدعي SaveChanges هنا - سيتم استدعاؤه من UnitOfWork
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"فشل في إضافة البحث: {ex.Message}", ex);
+            }
         }
 
         public async Task UpdateAsync(Research research)

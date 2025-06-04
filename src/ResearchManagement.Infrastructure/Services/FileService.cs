@@ -20,24 +20,37 @@ namespace ResearchManagement.Infrastructure.Services
 
         public async Task<string> UploadFileAsync(byte[] fileContent, string fileName, string contentType)
         {
-            // إنشاء اسم ملف فريد
-            var fileExtension = Path.GetExtension(fileName);
-            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+            try
+            {
+                // إنشاء اسم ملف فريد
+                var fileExtension = Path.GetExtension(fileName);
+                var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
 
-            // إنشاء مسار الملف
-            var uploadPath = Path.Combine(_settings.UploadPath, DateTime.Now.Year.ToString(),
-                DateTime.Now.Month.ToString());
+                // إنشاء مسار الملف بناءً على التاريخ
+                var currentDate = DateTime.Now;
+                var uploadPath = Path.Combine(_settings.UploadPath,
+                    currentDate.Year.ToString(),
+                    currentDate.Month.ToString("D2")); // استخدام D2 للحصول على رقمين
 
-            if (!Directory.Exists(uploadPath))
-                Directory.CreateDirectory(uploadPath);
+                // التأكد من وجود المجلد
+                if (!Directory.Exists(uploadPath))
+                {
+                    Directory.CreateDirectory(uploadPath);
+                }
 
-            var filePath = Path.Combine(uploadPath, uniqueFileName);
+                var filePath = Path.Combine(uploadPath, uniqueFileName);
 
-            // حفظ الملف
-            await File.WriteAllBytesAsync(filePath, fileContent);
+                // حفظ الملف
+                await File.WriteAllBytesAsync(filePath, fileContent);
 
-            // إرجاع المسار النسبي
-            return Path.Combine(DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), uniqueFileName);
+                // إرجاع المسار النسبي
+                return Path.Combine(currentDate.Year.ToString(),
+                    currentDate.Month.ToString("D2"), uniqueFileName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"فشل في رفع الملف: {ex.Message}", ex);
+            }
         }
 
         public async Task<byte[]> DownloadFileAsync(string filePath)

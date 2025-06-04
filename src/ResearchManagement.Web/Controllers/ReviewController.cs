@@ -16,16 +16,19 @@ namespace ResearchManagement.Web.Controllers
         private readonly IMediator _mediator;
         private readonly IReviewRepository _reviewRepository;
         private readonly IResearchRepository _researchRepository;
+        private readonly ILogger<ResearchController> _logger;
 
         public ReviewController(
             UserManager<User> userManager,
             IMediator mediator,
             IReviewRepository reviewRepository,
-            IResearchRepository researchRepository) : base(userManager)
+            IResearchRepository researchRepository,
+            ILogger<ResearchController> logger) : base(userManager)
         {
             _mediator = mediator;
             _reviewRepository = reviewRepository;
             _researchRepository = researchRepository;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -93,6 +96,16 @@ namespace ResearchManagement.Web.Controllers
 
             try
             {
+                // التحقق من وجود مراجعة سابقة
+                var existingReviews = await _reviewRepository.GetByResearchIdAsync(model.ResearchId);
+                var userReview = existingReviews.FirstOrDefault(r => r.ReviewerId == GetCurrentUserId());
+
+                if (userReview != null && userReview.IsCompleted)
+                {
+                    AddErrorMessage("لقد تم إكمال مراجعة هذا البحث مسبقاً");
+                    return RedirectToAction("Index");
+                }
+
                 var command = new CreateReviewCommand
                 {
                     Review = model,
@@ -106,7 +119,9 @@ namespace ResearchManagement.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger?.LogError(ex, "Error creating review for research {ResearchId}", model.ResearchId);
                 AddErrorMessage($"حدث خطأ في إرسال المراجعة: {ex.Message}");
+
                 var research = await _researchRepository.GetByIdWithDetailsAsync(model.ResearchId);
                 ViewData["Research"] = research;
                 return View(model);

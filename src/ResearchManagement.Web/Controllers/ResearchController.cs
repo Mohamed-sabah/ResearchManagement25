@@ -7,6 +7,8 @@ using ResearchManagement.Domain.Enums;
 using ResearchManagement.Application.DTOs;
 using ResearchManagement.Application.Commands.Research;
 using ResearchManagement.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using ResearchManagement.Infrastructure.Data;
 
 namespace ResearchManagement.Web.Controllers
 {
@@ -16,16 +18,21 @@ namespace ResearchManagement.Web.Controllers
         private readonly IMediator _mediator;
         private readonly IResearchRepository _researchRepository;
         private readonly IFileService _fileService;
-
+        private readonly ILogger<ResearchController> _logger;
+        private readonly ApplicationDbContext _context;
         public ResearchController(
             UserManager<User> userManager,
             IMediator mediator,
             IResearchRepository researchRepository,
-            IFileService fileService) : base(userManager)
+            IFileService fileService,
+            ApplicationDbContext context,
+            ILogger<ResearchController> logger) : base(userManager)
         {
             _mediator = mediator;
             _researchRepository = researchRepository;
             _fileService = fileService;
+            _context = context;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
@@ -84,10 +91,19 @@ namespace ResearchManagement.Web.Controllers
         public async Task<IActionResult> Create(CreateResearchDto model, IFormFile? researchFile)
         {
             if (!ModelState.IsValid)
+            {
+                // إضافة معلومات debug
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogWarning("Validation error: {Error}", error.ErrorMessage);
+                }
                 return View(model);
+            }
 
             try
             {
+                _logger.LogInformation("Creating research for user {UserId}: {Title}", GetCurrentUserId(), model.Title);
+
                 var command = new CreateResearchCommand
                 {
                     Research = model,
@@ -96,10 +112,21 @@ namespace ResearchManagement.Web.Controllers
 
                 var researchId = await _mediator.Send(command);
 
+                _logger.LogInformation("Research created successfully with ID {ResearchId}", researchId);
+
                 // رفع الملف إذا تم تحديده
                 if (researchFile != null && researchFile.Length > 0)
                 {
-                    await UploadResearchFile(researchId, researchFile, FileType.OriginalResearch);
+                    try
+                    {
+                        await UploadResearchFile(researchId, researchFile, FileType.OriginalResearch);
+                        _logger.LogInformation("File uploaded successfully for research {ResearchId}", researchId);
+                    }
+                    catch (Exception fileEx)
+                    {
+                        _logger.LogError(fileEx, "Failed to upload file for research {ResearchId}", researchId);
+                        AddWarningMessage("تم حفظ البحث بنجاح لكن فشل في رفع الملف");
+                    }
                 }
 
                 AddSuccessMessage("تم تقديم البحث بنجاح");
@@ -107,6 +134,7 @@ namespace ResearchManagement.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error creating research for user {UserId}", GetCurrentUserId());
                 AddErrorMessage($"حدث خطأ في تقديم البحث: {ex.Message}");
                 return View(model);
             }
@@ -225,19 +253,139 @@ namespace ResearchManagement.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> DownloadFile(int fileId)
         {
-            // TODO: Implement file download logic
-            return NotFound();
+            try
+            {
+                // البحث عن الملف في قاعدة البيانات
+                var researchFile = await _context.ResearchFiles
+                    .Include(f => f.Research)
+                    .FirstOrDefaultAsync(f => f.Id == fileId && f.IsActive);
+
+                if (researchFile == null)
+                {
+                    AddErrorMessage("الملف غير موجود");
+                    return NotFound();
+                }
+
+                // التحقق من صلاحيات الوصول
+                var currentUser = await GetCurrentUserAsync();
+                if (currentUser == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                // التحقق من الصلاحيات حسب دور المستخدم
+                bool hasAccess = false;
+
+                if (currentUser.Role == UserRole.SystemAdmin ||
+                    currentUser.Role == UserRole.ConferenceManager)
+                {
+                    hasAccess = true; // المدراء لهم صلاحية كاملة
+                }
+                else if (currentUser.Role == UserRole.Researcher &&
+                         researchFile.Research.SubmittedById == currentUser.Id)
+                {
+                    hasAccess = true; // الباحث يمكنه تحميل ملفات بحوثه
+                }
+                else if (currentUser.Role == UserRole.Reviewer)
+                {
+                    // المراجع يمكنه تحميل ملفات البحوث المكلف بمراجعتها
+                    var hasReviewAccess = await _context.Reviews
+                        .AnyAsync(r => r.ResearchId == researchFile.ResearchId &&
+                                      r.ReviewerId == currentUser.Id);
+                    hasAccess = hasReviewAccess;
+                }
+                else if (currentUser.Role == UserRole.TrackManager)
+                {
+                    // مدير التراك يمكنه تحميل ملفات بحوث تخصصه
+                    var trackManager = await _context.TrackManagers
+                        .FirstOrDefaultAsync(tm => tm.UserId == currentUser.Id &&
+                                                  tm.Track == researchFile.Research.Track);
+                    hasAccess = trackManager != null;
+                }
+
+                if (!hasAccess)
+                {
+                    AddErrorMessage("ليس لديك صلاحية لتحميل هذا الملف");
+                    return Forbid();
+                }
+
+                // تحميل محتوى الملف
+                var fileContent = await _fileService.DownloadFileAsync(researchFile.FilePath);
+
+                // إرجاع الملف للتحميل
+                return File(fileContent, researchFile.ContentType, researchFile.OriginalFileName);
+            }
+            catch (FileNotFoundException)
+            {
+                AddErrorMessage("الملف غير موجود على الخادم");
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                // تسجيل الخطأ
+                _logger?.LogError(ex, "Error downloading file {FileId}", fileId);
+                AddErrorMessage("حدث خطأ أثناء تحميل الملف");
+                return RedirectToAction("Index");
+            }
         }
 
         private async Task UploadResearchFile(int researchId, IFormFile file, FileType fileType)
         {
-            using var stream = new MemoryStream();
-            await file.CopyToAsync(stream);
-            var fileContent = stream.ToArray();
+            try
+            {
+                // التحقق من صحة الملف
+                if (file == null || file.Length == 0)
+                {
+                    throw new ArgumentException("لم يتم تحديد ملف صالح");
+                }
 
-            var fileName = await _fileService.UploadFileAsync(fileContent, file.FileName, file.ContentType);
+                // التحقق من نوع الملف
+                var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            // TODO: Save file information to database
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    throw new ArgumentException($"نوع الملف غير مدعوم. الأنواع المدعومة: {string.Join(", ", allowedExtensions)}");
+                }
+
+                // التحقق من حجم الملف (50 ميجابايت)
+                if (file.Length > 50 * 1024 * 1024)
+                {
+                    throw new ArgumentException("حجم الملف كبير جداً. الحد الأقصى 50 ميجابايت");
+                }
+
+                // تحويل الملف إلى byte array
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                var fileContent = stream.ToArray();
+
+                // رفع الملف باستخدام FileService
+                var filePath = await _fileService.UploadFileAsync(fileContent, file.FileName, file.ContentType);
+
+                // حفظ معلومات الملف في قاعدة البيانات
+                var researchFile = new ResearchFile
+                {
+                    ResearchId = researchId,
+                    FileName = Path.GetFileName(filePath),
+                    OriginalFileName = file.FileName,
+                    FilePath = filePath,
+                    ContentType = file.ContentType,
+                    FileSize = file.Length,
+                    FileType = fileType,
+                    Version = 1,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = GetCurrentUserId()
+                };
+
+                _context.ResearchFiles.Add(researchFile);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error uploading file for research {ResearchId}", researchId);
+                throw; // إعادة إرسال الخطأ للتعامل معه في المستوى الأعلى
+            }
         }
     }
 }

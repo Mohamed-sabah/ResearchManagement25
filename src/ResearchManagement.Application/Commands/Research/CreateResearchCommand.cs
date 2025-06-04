@@ -37,18 +37,57 @@ namespace ResearchManagement.Application.Commands.Research
 
         public async Task<int> Handle(CreateResearchCommand request, CancellationToken cancellationToken)
         {
-            var research = _mapper.Map<Domain.Entities.Research>(request.Research);
-            research.SubmittedById = request.UserId;
-            research.Status = Domain.Enums.ResearchStatus.Submitted;
-            research.SubmissionDate = DateTime.UtcNow;
+            try
+            {
+                // تحويل DTO إلى Entity باستخدام AutoMapper
+                var research = _mapper.Map<Domain.Entities.Research>(request.Research);
 
-            await _researchRepository.AddAsync(research);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                // تعيين معرف المستخدم والتواريخ
+                research.SubmittedById = request.UserId;
+                research.Status = Domain.Enums.ResearchStatus.Submitted;
+                research.SubmissionDate = DateTime.UtcNow;
+                research.CreatedAt = DateTime.UtcNow;
+                research.CreatedBy = request.UserId;
 
-            // إرسال بريد إلكتروني للتأكيد
-            await _emailService.SendResearchSubmissionConfirmationAsync(research.Id);
+                // إضافة البحث إلى قاعدة البيانات
+                await _researchRepository.AddAsync(research);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return research.Id;
+                // تحديث معرف البحث في المؤلفين
+                if (request.Research.Authors?.Any() == true)
+                {
+                    foreach (var authorDto in request.Research.Authors)
+                    {
+                        var author = _mapper.Map<Domain.Entities.ResearchAuthor>(authorDto);
+                        author.ResearchId = research.Id;
+                        author.CreatedAt = DateTime.UtcNow;
+                        author.CreatedBy = request.UserId;
+
+                        research.Authors.Add(author);
+                    }
+
+                    // حفظ المؤلفين
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+
+                // إرسال بريد إلكتروني للتأكيد
+                try
+                {
+                    await _emailService.SendResearchSubmissionConfirmationAsync(research.Id);
+                }
+                catch (Exception emailEx)
+                {
+                    // تسجيل خطأ الإيميل لكن عدم إيقاف العملية
+                    // يمكن استخدام logger هنا
+                }
+
+                return research.Id;
+            }
+            catch (Exception ex)
+            {
+                // تسجيل الخطأ
+                throw new InvalidOperationException($"فشل في حفظ البحث: {ex.Message}", ex);
+            }
         }
     }
 }

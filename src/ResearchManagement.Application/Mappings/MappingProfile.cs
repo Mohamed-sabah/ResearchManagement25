@@ -35,14 +35,16 @@ namespace ResearchManagement.Application.Mappings
                     $"{src.SubmittedBy.FirstName} {src.SubmittedBy.LastName}"));
 
             CreateMap<CreateResearchDto, Research>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.SubmissionDate, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Domain.Enums.ResearchStatus.Submitted))
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.SubmittedBy, opt => opt.Ignore())
-                .ForMember(dest => dest.Files, opt => opt.Ignore())
-                .ForMember(dest => dest.Reviews, opt => opt.Ignore())
-                .ForMember(dest => dest.StatusHistory, opt => opt.Ignore());
+        .ForMember(dest => dest.Id, opt => opt.Ignore())
+        .ForMember(dest => dest.SubmissionDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+        .ForMember(dest => dest.Status, opt => opt.MapFrom(src => Domain.Enums.ResearchStatus.Submitted))
+        .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+        .ForMember(dest => dest.SubmittedById, opt => opt.Ignore()) // سيتم تعيينه يدوياً
+        .ForMember(dest => dest.SubmittedBy, opt => opt.Ignore())
+        .ForMember(dest => dest.Files, opt => opt.Ignore())
+        .ForMember(dest => dest.Reviews, opt => opt.Ignore())
+        .ForMember(dest => dest.StatusHistory, opt => opt.Ignore())
+        .ForMember(dest => dest.Authors, opt => opt.Ignore()); // سيتم التعامل معه منفصلاً
 
             CreateMap<UpdateResearchDto, Research>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -61,11 +63,13 @@ namespace ResearchManagement.Application.Mappings
                         ? $"{src.FirstNameEn} {src.LastNameEn}" : null));
 
             CreateMap<CreateResearchAuthorDto, ResearchAuthor>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.ResearchId, opt => opt.Ignore())
-                .ForMember(dest => dest.Research, opt => opt.Ignore())
-                .ForMember(dest => dest.User, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+              .ForMember(dest => dest.Id, opt => opt.Ignore())
+              .ForMember(dest => dest.ResearchId, opt => opt.Ignore()) // سيتم تعيينه يدوياً
+              .ForMember(dest => dest.Research, opt => opt.Ignore())
+              .ForMember(dest => dest.User, opt => opt.Ignore())
+              .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+              .ForMember(dest => dest.CreatedBy, opt => opt.Ignore()); // سيتم تعيينه يدوياً  
+
 
             CreateMap<UpdateResearchAuthorDto, ResearchAuthor>()
                 .ForMember(dest => dest.ResearchId, opt => opt.Ignore())
