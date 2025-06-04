@@ -6,6 +6,7 @@ using ResearchManagement.Domain.Entities;
 using ResearchManagement.Domain.Enums;
 using ResearchManagement.Application.Interfaces;
 using ResearchManagement.Infrastructure.Data;
+using ResearchManagement.Web.Models.ViewModels;
 
 namespace ResearchManagement.Web.Controllers
 {
@@ -52,7 +53,7 @@ namespace ResearchManagement.Web.Controllers
                     UserRole.Reviewer => await ReviewerDashboard(),
                     UserRole.TrackManager => await TrackManagerDashboard(),
                     UserRole.ConferenceManager or UserRole.SystemAdmin => await ConferenceManagerDashboard(),
-                    _ => View("Error")
+                    _ => View("UnknownRole")
                 };
             }
             catch (Exception ex)
@@ -70,7 +71,7 @@ namespace ResearchManagement.Web.Controllers
                 var userId = GetCurrentUserId();
                 var researches = await _researchRepository.GetByUserIdAsync(userId);
 
-                var dashboardData = new
+                var viewModel = new ResearcherDashboardViewModel
                 {
                     TotalResearches = researches.Count(),
                     AcceptedResearches = researches.Count(r => r.Status == ResearchStatus.Accepted),
@@ -82,7 +83,7 @@ namespace ResearchManagement.Web.Controllers
                 };
 
                 _logger.LogInformation("Researcher dashboard loaded successfully for user {UserId}", userId);
-                return View("ResearcherDashboard", dashboardData);
+                return View("ResearcherDashboard", viewModel);
             }
             catch (Exception ex)
             {
@@ -100,7 +101,7 @@ namespace ResearchManagement.Web.Controllers
                 var reviews = await _reviewRepository.GetByReviewerIdAsync(userId);
                 var pendingReviews = await _reviewRepository.GetPendingReviewsAsync(userId);
 
-                var dashboardData = new
+                var viewModel = new ReviewerDashboardViewModel
                 {
                     TotalReviews = reviews.Count(),
                     CompletedReviews = reviews.Count(r => r.IsCompleted),
@@ -110,7 +111,7 @@ namespace ResearchManagement.Web.Controllers
                 };
 
                 _logger.LogInformation("Reviewer dashboard loaded successfully for user {UserId}", userId);
-                return View("ReviewerDashboard", dashboardData);
+                return View("ReviewerDashboard", viewModel);
             }
             catch (Exception ex)
             {
@@ -126,7 +127,6 @@ namespace ResearchManagement.Web.Controllers
             {
                 var userId = GetCurrentUserId();
 
-                // الحصول على معلومات TrackManager
                 var trackManager = await _context.TrackManagers
                     .Include(tm => tm.TrackReviewers)
                     .ThenInclude(tr => tr.Reviewer)
@@ -139,33 +139,31 @@ namespace ResearchManagement.Web.Controllers
                     return View("Error");
                 }
 
-                // الحصول على بحوث التخصص
                 var trackResearches = await _context.Researches
                     .Include(r => r.SubmittedBy)
                     .Include(r => r.Authors)
                     .Where(r => r.Track == trackManager.Track)
                     .ToListAsync();
 
-                // الحصول على المراجعات المتعلقة بالتخصص
                 var trackReviews = await _context.Reviews
                     .Include(r => r.Research)
                     .Include(r => r.Reviewer)
                     .Where(r => r.Research.Track == trackManager.Track)
                     .ToListAsync();
 
-                var dashboardData = new
+                var viewModel = new TrackManagerDashboardViewModel
                 {
                     TotalResearches = trackResearches.Count,
                     TotalReviewers = trackManager.TrackReviewers.Count(tr => tr.IsActive),
                     PendingAssignments = trackResearches.Count(r => r.Status == ResearchStatus.Submitted),
                     CompletedReviews = trackReviews.Count(r => r.IsCompleted),
+                    TrackName = GetTrackDisplayName(trackManager.Track),
                     RecentResearches = trackResearches.OrderByDescending(r => r.SubmissionDate).Take(5).ToList(),
-                    OverdueReviews = trackReviews.Where(r => !r.IsCompleted && r.Deadline < DateTime.UtcNow).Take(5).ToList(),
-                    TrackName = GetTrackDisplayName(trackManager.Track)
+                    OverdueReviews = trackReviews.Where(r => !r.IsCompleted && r.Deadline < DateTime.UtcNow).Take(5).ToList()
                 };
 
                 _logger.LogInformation("Track manager dashboard loaded successfully for user {UserId}, track {Track}", userId, trackManager.Track);
-                return View("TrackManagerDashboard", dashboardData);
+                return View("TrackManagerDashboard", viewModel);
             }
             catch (Exception ex)
             {
@@ -179,27 +177,24 @@ namespace ResearchManagement.Web.Controllers
         {
             try
             {
-                // الحصول على جميع البحوث مع المعلومات المطلوبة
                 var allResearches = await _context.Researches
                     .Include(r => r.SubmittedBy)
                     .Include(r => r.Authors)
                     .ToListAsync();
 
-                // الحصول على جميع المستخدمين النشطين
                 var allUsers = await _context.Users
                     .Where(u => u.IsActive)
                     .OrderByDescending(u => u.CreatedAt)
                     .ToListAsync();
 
-                // الحصول على جميع المراجعات المكتملة
                 var allReviews = await _context.Reviews
                     .Where(r => r.IsCompleted)
                     .ToListAsync();
 
-                // إحصائيات التخصصات (تم تحويلها إلى LINQ to Objects لتجنب مشاكل الترجمة)
                 var trackStatistics = allResearches
                     .GroupBy(r => r.Track)
-                    .Select(g => new {
+                    .Select(g => new TrackStatistic
+                    {
                         TrackName = GetTrackDisplayName(g.Key),
                         ResearchCount = g.Count(),
                         AcceptedCount = g.Count(r => r.Status == ResearchStatus.Accepted),
@@ -210,14 +205,12 @@ namespace ResearchManagement.Web.Controllers
                     .OrderByDescending(x => x.ResearchCount)
                     .ToList();
 
-                // حساب متوسط وقت المراجعة
                 var averageReviewTime = allReviews.Any() ?
                     allReviews.Where(r => r.CompletedDate.HasValue)
                              .Average(r => (r.CompletedDate!.Value - r.AssignedDate).TotalDays) : 0;
 
-                var dashboardData = new
+                var viewModel = new ConferenceManagerDashboardViewModel
                 {
-                    // إحصائيات البحوث
                     TotalResearches = allResearches.Count,
                     AcceptedResearches = allResearches.Count(r => r.Status == ResearchStatus.Accepted),
                     PendingResearches = allResearches.Count(r => r.Status == ResearchStatus.UnderReview ||
@@ -225,25 +218,17 @@ namespace ResearchManagement.Web.Controllers
                                                                 r.Status == ResearchStatus.AssignedForReview),
                     RejectedResearches = allResearches.Count(r => r.Status == ResearchStatus.Rejected),
                     SubmittedResearches = allResearches.Count(r => r.Status == ResearchStatus.Submitted),
-
-                    // إحصائيات المستخدمين
                     TotalUsers = allUsers.Count,
                     TotalReviewers = allUsers.Count(u => u.Role == UserRole.Reviewer),
-
-                    // إحصائيات المراجعات
                     CompletedReviews = allReviews.Count,
                     AverageReviewTime = Math.Round(averageReviewTime, 1),
-
-                    // البيانات الحديثة
                     RecentSubmissions = allResearches.OrderByDescending(r => r.SubmissionDate).Take(10).ToList(),
                     RecentUsers = allUsers.Take(5).ToList(),
-
-                    // إحصائيات التخصصات
                     TrackStatistics = trackStatistics
                 };
 
                 _logger.LogInformation("Conference manager dashboard loaded successfully");
-                return View("ConferenceManagerDashboard", dashboardData);
+                return View("ConferenceManagerDashboard", viewModel);
             }
             catch (Exception ex)
             {
@@ -252,7 +237,6 @@ namespace ResearchManagement.Web.Controllers
                 return View("Error");
             }
         }
-
         // ============================================
         // دوال مساعدة لعرض الأسماء بالعربية
         // ============================================

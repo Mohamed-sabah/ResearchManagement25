@@ -1,6 +1,6 @@
-﻿html@{
+﻿@model ResearchManagement.Web.Models.ViewModels.ReviewerDashboardViewModel
+@{
     ViewData["Title"] = "لوحة تحكم المقيم";
-    var data = Model as dynamic;
 }
 
 <div class="row mb-4">
@@ -17,7 +17,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@(data?.TotalReviews ?? 0)</h3>
+                        <h3 class="mb-0">@Model.TotalReviews</h3>
                         <p class="mb-0">إجمالي المراجعات</p>
                     </div>
                     <div class="ms-3">
@@ -33,7 +33,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@(data?.CompletedReviews ?? 0)</h3>
+                        <h3 class="mb-0">@Model.CompletedReviews</h3>
                         <p class="mb-0">المراجعات المكتملة</p>
                     </div>
                     <div class="ms-3">
@@ -49,7 +49,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@(data?.PendingReviews ?? 0)</h3>
+                        <h3 class="mb-0">@Model.PendingReviews</h3>
                         <p class="mb-0">المراجعات المعلقة</p>
                     </div>
                     <div class="ms-3">
@@ -65,7 +65,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h3 class="mb-0">@(data?.OverdueReviews ?? 0)</h3>
+                        <h3 class="mb-0">@Model.OverdueReviews</h3>
                         <p class="mb-0">المراجعات المتأخرة</p>
                     </div>
                     <div class="ms-3">
@@ -119,7 +119,7 @@
                 <a href="@Url.Action("Index", "Review")" class="btn btn-sm btn-outline-primary">عرض الكل</a>
             </div>
             <div class="card-body">
-                @if (data?.RecentReviews != null && data.RecentReviews.Any())
+                @if (Model.RecentReviews.Any())
                 {
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -133,7 +133,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var review in data.RecentReviews)
+                                @foreach (var review in Model.RecentReviews)
                                 {
                                     <tr>
                                         <td><strong>@review.Research.Title</strong></td>
@@ -191,3 +191,210 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Dashboard specific scripts for reviewer
+        $(document).ready(function() {
+            // تحديث الإحصائيات كل 5 دقائق
+            setInterval(function() {
+                refreshReviewerStats();
+            }, 300000);
+
+            // تفعيل التلميحات
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+
+        function refreshReviewerStats() {
+            $.ajax({
+                url: '@Url.Action("GetQuickStats", "Dashboard")',
+                type: 'GET',
+                success: function(data) {
+                    if (data.success) {
+                        updateStats(data.data);
+                    }
+                },
+                error: function() {
+                    console.log('خطأ في تحديث الإحصائيات');
+                }
+            });
+        }
+
+        function updateStats(data) {
+            if (data.total !== undefined) {
+                $('.card-body h3').eq(0).text(data.total);
+            }
+            if (data.completed !== undefined) {
+                $('.card-body h3').eq(1).text(data.completed);
+            }
+            if (data.pending !== undefined) {
+                $('.card-body h3').eq(2).text(data.pending);
+            }
+            if (data.overdue !== undefined) {
+                $('.card-body h3').eq(3).text(data.overdue);
+            }
+        }
+
+        // تنبيه للمراجعات المتأخرة
+        @if (Model.OverdueReviews > 0)
+        {
+            <text>
+                    // عرض تنبيه للمراجعات المتأخرة
+                    setTimeout(function() {
+                        if (@Model.OverdueReviews > 0) {
+                            showNotification('لديك @Model.OverdueReviews مراجعة متأخرة، يرجى إكمالها في أسرع وقت', 'warning');
+                        }
+                    }, 2000);
+            </text>
+        }
+
+        function showNotification(message, type) {
+            var alertClass = 'alert-info';
+            if (type === 'warning') alertClass = 'alert-warning';
+            if (type === 'success') alertClass = 'alert-success';
+            if (type === 'danger') alertClass = 'alert-danger';
+
+            var notification = `
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                     style="top: 100px; right: 20px; z-index: 9999; min-width: 350px;" role="alert">
+                    <i class="fas fa-bell me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            $('body').append(notification);
+
+            // إخفاء التنبيه تلقائياً بعد 5 ثوان
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+}
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+    .table th {
+        background-color: #f8f9fc;
+        border-bottom: 2px solid #e9ecef;
+        font-weight: 600;
+        color: #5a5c69;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .btn {
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .opacity-75 {
+        opacity: 0.75;
+    }
+
+    /* تحسين المظهر للموبايل */
+
+
+    {
+        font-size: 1.5rem;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    }
+
+    /* تأثيرات متقدمة للبطاقات */
+    .card.bg-primary,
+    .card.bg-success,
+    .card.bg-warning,
+    .card.bg-danger {
+        background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-primary) 100%);
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .card.bg-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .card.bg-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    }
+
+    .card.bg-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+    }
+
+    /* تأثير الهوفر للإحصائيات */
+    .row .col-md-3:hover .card {
+        transform: scale(1.05);
+        z-index: 10;
+    }
+
+    /* تحسين شكل الجدول */
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+        .table thead th {
+            border: none;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody td {
+            border-color: #f1f3f4;
+            vertical-align: middle;
+        }
+
+    /* تأثيرات الأزرار */
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border-color: #007bff;
+    }
+
+    .btn-outline-warning:hover {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        border-color: #ffc107;
+    }
+
+    .btn-outline-secondary:hover {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border-color: #6c757d;
+    }
+</style>

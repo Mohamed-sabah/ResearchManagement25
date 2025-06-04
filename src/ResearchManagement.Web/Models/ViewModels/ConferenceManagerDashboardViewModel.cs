@@ -20,11 +20,11 @@ namespace ResearchManagement.Web.Models.ViewModels
         public double AverageReviewTime { get; set; }
 
         // البيانات الحديثة
-        public IEnumerable<Research> RecentSubmissions { get; set; } = new List<Research>();
-        public IEnumerable<User> RecentUsers { get; set; } = new List<User>();
+        public List<Research> RecentSubmissions { get; set; } = new();
+        public List<User> RecentUsers { get; set; } = new();
 
         // إحصائيات التخصصات
-        public IEnumerable<TrackStatistic> TrackStatistics { get; set; } = new List<TrackStatistic>();
+        public List<TrackStatistic> TrackStatistics { get; set; } = new();
     }
 
     public class TrackStatistic
