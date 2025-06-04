@@ -11,41 +11,75 @@ namespace ResearchManagement.Web.Controllers
 
         protected BaseController(UserManager<User> userManager)
         {
-            _userManager = userManager;
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         }
 
         protected string GetCurrentUserId()
         {
-            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            try
+            {
+                var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                return userId ?? string.Empty;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
         }
 
         protected async Task<User?> GetCurrentUserAsync()
         {
-            var userId = GetCurrentUserId();
-            if (string.IsNullOrEmpty(userId))
-                return null;
+            try
+            {
+                if (User?.Identity?.IsAuthenticated != true)
+                {
+                    return null;
+                }
 
-            return await _userManager.FindByIdAsync(userId);
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return null;
+                }
+
+                return await _userManager.FindByIdAsync(userId);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         protected void AddSuccessMessage(string message)
         {
-            TempData["SuccessMessage"] = message;
+            if (!string.IsNullOrEmpty(message))
+            {
+                TempData["SuccessMessage"] = message;
+            }
         }
 
         protected void AddErrorMessage(string message)
         {
-            TempData["ErrorMessage"] = message;
+            if (!string.IsNullOrEmpty(message))
+            {
+                TempData["ErrorMessage"] = message;
+            }
         }
 
         protected void AddWarningMessage(string message)
         {
-            TempData["WarningMessage"] = message;
+            if (!string.IsNullOrEmpty(message))
+            {
+                TempData["WarningMessage"] = message;
+            }
         }
 
         protected void AddInfoMessage(string message)
         {
-            TempData["InfoMessage"] = message;
+            if (!string.IsNullOrEmpty(message))
+            {
+                TempData["InfoMessage"] = message;
+            }
         }
     }
 }
