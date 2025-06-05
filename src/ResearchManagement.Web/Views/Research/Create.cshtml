@@ -313,11 +313,22 @@
             }
 
             // التحقق من وجود باحث واحد على الأقل
-            if ($('#authorsContainer .author-item').length === 0) {
-                e.preventDefault();
-                alert('يجب إضافة باحث واحد على الأقل');
-                return false;
-            }
+            // if ($('#authorsContainer .author-item').length === 0) {
+            //     e.preventDefault();
+            //     alert('يجب إضافة باحث واحد على الأقل');
+            //     return false;
+            // }
+
+                    // التحقق من وجود بيانات صحيحة للباحث الأول
+        var firstAuthorValid = $('#authorsContainer .author-item').first()
+            .find('input[required]').toArray()
+            .every(input => input.value.trim() !== '');
+
+        if (!firstAuthorValid) {
+            e.preventDefault();
+            alert('يجب ملء بيانات الباحث الرئيسي');
+            return false;
+        }
         });
     </script>
 }

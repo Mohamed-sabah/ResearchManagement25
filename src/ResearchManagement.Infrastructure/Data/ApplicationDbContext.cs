@@ -157,8 +157,8 @@ namespace ResearchManagement.Infrastructure.Data
                 entity.HasOne(rf => rf.Research)
                     .WithMany(r => r.Files)
                     .HasForeignKey(rf => rf.ResearchId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                     .IsRequired(false); // المسار الرئيسي
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired(true); // المسار الرئيسي
 
                 // العلاقة الثانوية - Review - هنا الحل!
                 entity.HasOne(rf => rf.Review)

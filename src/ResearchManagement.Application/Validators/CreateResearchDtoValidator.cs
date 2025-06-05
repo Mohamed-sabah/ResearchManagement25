@@ -60,13 +60,29 @@ namespace ResearchManagement.Application.Validators
 
             RuleForEach(x => x.Authors).SetValidator(new CreateResearchAuthorDtoValidator());
         }
-
         private bool BeValidWordCount(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return false;
-            var wordCount = text.Trim().Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+            // تنظيف النص العربي
+            var cleanText = text.Trim()
+                .Replace("،", " ")
+                .Replace("؛", " ")
+                .Replace(":", " ")
+                .Replace(".", " ");
+
+            var words = cleanText.Split(new[] { ' ', '\t', '\n', '\r' },
+                StringSplitOptions.RemoveEmptyEntries);
+
+            var wordCount = words.Where(w => w.Length > 1).Count();
             return wordCount >= 150 && wordCount <= 300;
         }
+        //private bool BeValidWordCount(string text)
+        //{
+        //    if (string.IsNullOrWhiteSpace(text)) return false;
+        //    var wordCount = text.Trim().Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        //    return wordCount >= 150 && wordCount <= 300;
+        //}
 
         private bool BeValidWordCountEn(string text)
         {
@@ -87,5 +103,6 @@ namespace ResearchManagement.Application.Validators
         {
             return authors.Any(a => a.IsCorresponding);
         }
+
     }
 }

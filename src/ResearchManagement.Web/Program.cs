@@ -9,6 +9,7 @@ using ResearchManagement.Infrastructure.Middleware;
 using FluentValidation;
 using Serilog;
 using Microsoft.AspNetCore.RateLimiting;
+using ResearchManagement.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,20 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
+
+
+//builder.Services.AddControllersWithViews();
+
+// ≈÷«›… Œœ„«  «· ÿ»Ìﬁ
+//builder.Services.AddApplicationServices(builder.Configuration);
+//builder.Services.AddRepositories();
+//builder.Services.AddBusinessServices();
+//builder.Services.AddMediatRServices();
+//builder.Services.AddMappingServices();
+//builder.Services.AddValidationServices();
+//builder.Services.AddConfigurationServices(builder.Configuration);
+builder.Services.AddBackgroundServices();
+
 
 //  ”ÃÌ· Repositories
 builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
