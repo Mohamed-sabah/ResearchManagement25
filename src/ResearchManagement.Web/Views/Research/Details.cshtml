@@ -1,4 +1,5 @@
 @model ResearchManagement.Web.Models.ViewModels.Research.ResearchDetailsViewModel
+@using ResearchManagement.Domain.Enums
 @{
     ViewData["Title"] = "تفاصيل البحث";
 }
@@ -342,20 +343,20 @@
                                 @if (review.IsCompleted)
                                 {
                                     <div class="card-body">
-                                        @if (review.Decision.HasValue)
+                                        @if (review.Decision != ReviewDecision.NotReviewed)
                                         {
                                             <div class="mb-3">
                                                 <strong>القرار:</strong>
-                                                <span class="badge @GetDecisionBadgeClass(review.Decision.Value) ms-2">
-                                                    @GetDecisionDisplayName(review.Decision.Value)
+                                                <span class="badge @GetDecisionBadgeClass(review.Decision) ms-2">
+                                                    @GetDecisionDisplayName(review.Decision)
                                                 </span>
                                             </div>
                                         }
-                                        @if (review.Score.HasValue)
+                                        @if (review.Score > 0)
                                         {
                                             <div class="mb-3">
                                                 <strong>التقييم:</strong>
-                                                <span class="badge bg-info ms-2">@review.Score.Value/10</span>
+                                                <span class="badge bg-info ms-2">@review.Score/10</span>
                                             </div>
                                         }
                                         @if (!string.IsNullOrEmpty(review.CommentsToAuthor))
@@ -410,7 +411,7 @@
                                             التاريخ: @history.ChangedAt.ToString("yyyy/MM/dd HH:mm")
                                             @if (!string.IsNullOrEmpty(history.Notes))
                                             {
-                                                <br>ملاحظات: @history.Notes
+                                                <br />Notes: @(history.Notes ?? "")
                                             }
                                         </p>
                                     </div>
@@ -498,10 +499,10 @@
     {
         return type switch
         {
-            ResearchManagement.Domain.Enums.ResearchType.FullPaper => "بحث كامل",
-            ResearchManagement.Domain.Enums.ResearchType.ShortPaper => "بحث قصير",
-            ResearchManagement.Domain.Enums.ResearchType.Poster => "ملصق علمي",
-            ResearchManagement.Domain.Enums.ResearchType.Workshop => "ورشة عمل",
+            ResearchManagement.Domain.Enums.ResearchType.OriginalResearch => "بحث كامل",
+            ResearchManagement.Domain.Enums.ResearchType.CaseStudy => "بحث قصير",
+            ResearchManagement.Domain.Enums.ResearchType.ExperimentalStudy => "ملصق علمي",
+            ResearchManagement.Domain.Enums.ResearchType.AppliedResearch => "ورشة عمل",
             _ => type.ToString()
         };
     }
@@ -512,7 +513,7 @@
         {
             ResearchManagement.Domain.Enums.ResearchLanguage.Arabic => "العربية",
             ResearchManagement.Domain.Enums.ResearchLanguage.English => "الإنجليزية",
-            ResearchManagement.Domain.Enums.ResearchLanguage.Both => "ثنائي اللغة",
+            ResearchManagement.Domain.Enums.ResearchLanguage.Bilingual => "ثنائي اللغة",
             _ => language.ToString()
         };
     }
@@ -521,12 +522,12 @@
     {
         return fileType switch
         {
-            ResearchManagement.Domain.Enums.FileType.ResearchPaper => "ورقة البحث",
-            ResearchManagement.Domain.Enums.FileType.Presentation => "عرض تقديمي",
-            ResearchManagement.Domain.Enums.FileType.Dataset => "مجموعة بيانات",
-            ResearchManagement.Domain.Enums.FileType.SourceCode => "كود مصدري",
-            ResearchManagement.Domain.Enums.FileType.Supplementary => "ملف مكمل",
-            ResearchManagement.Domain.Enums.FileType.ReviewForm => "نموذج مراجعة",
+            ResearchManagement.Domain.Enums.FileType.OriginalResearch => "البحث الأصلي",
+            ResearchManagement.Domain.Enums.FileType.RevisedVersion => "النسخة المعدلة",
+            ResearchManagement.Domain.Enums.FileType.RevisionFiles => "ملفات التعديل",
+            ResearchManagement.Domain.Enums.FileType.ReviewerNotes => "ملاحظات المقيم",
+            ResearchManagement.Domain.Enums.FileType.SupplementaryFiles => "ملفات إضافية",
+            ResearchManagement.Domain.Enums.FileType.ResponseToReviewers => "ملف الاستجابة للمراجعين",
             _ => fileType.ToString()
         };
     }
@@ -535,10 +536,10 @@
     {
         return decision switch
         {
-            ResearchManagement.Domain.Enums.ReviewDecision.Accept => "قبول",
+            ResearchManagement.Domain.Enums.ReviewDecision.AcceptAsIs => "قبول",
             ResearchManagement.Domain.Enums.ReviewDecision.Reject => "رفض",
-            ResearchManagement.Domain.Enums.ReviewDecision.MinorRevision => "تعديل طفيف",
-            ResearchManagement.Domain.Enums.ReviewDecision.MajorRevision => "تعديل جوهري",
+            ResearchManagement.Domain.Enums.ReviewDecision.AcceptWithMinorRevisions => "تعديل طفيف",
+            ResearchManagement.Domain.Enums.ReviewDecision.MajorRevisionsRequired => "تعديل جوهري",
             _ => decision.ToString()
         };
     }
@@ -547,10 +548,10 @@
     {
         return decision switch
         {
-            ResearchManagement.Domain.Enums.ReviewDecision.Accept => "bg-success",
+            ResearchManagement.Domain.Enums.ReviewDecision.AcceptAsIs => "bg-success",
             ResearchManagement.Domain.Enums.ReviewDecision.Reject => "bg-danger",
-            ResearchManagement.Domain.Enums.ReviewDecision.MinorRevision => "bg-warning",
-            ResearchManagement.Domain.Enums.ReviewDecision.MajorRevision => "bg-info",
+            ResearchManagement.Domain.Enums.ReviewDecision.AcceptWithMinorRevisions => "bg-warning",
+            ResearchManagement.Domain.Enums.ReviewDecision.MajorRevisionsRequired => "bg-info",
             _ => "bg-secondary"
         };
     }

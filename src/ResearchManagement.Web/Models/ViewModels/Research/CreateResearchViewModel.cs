@@ -45,6 +45,10 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
         [Display(Name = "مسار البحث")]
         public ResearchTrack Track { get; set; }
 
+        [Display(Name = "المنهجية")]
+        [StringLength(2000, ErrorMessage = "المنهجية يجب أن تكون أقل من 2000 حرف")]
+        public string? Methodology { get; set; }
+
         [Display(Name = "ملاحظات إضافية")]
         [StringLength(1000, ErrorMessage = "الملاحظات يجب أن تكون أقل من 1000 حرف")]
         public string? Notes { get; set; }
@@ -99,10 +103,10 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
 
         private static string GetResearchTypeDisplayName(ResearchType type) => type switch
         {
-            ResearchType.FullPaper => "بحث كامل",
-            ResearchType.ShortPaper => "بحث قصير",
-            ResearchType.Poster => "ملصق علمي",
-            ResearchType.Workshop => "ورشة عمل",
+            ResearchType.OriginalResearch => "بحث كامل",
+            ResearchType.CaseStudy => "بحث قصير",
+            ResearchType.ExperimentalStudy => "ملصق علمي",
+            ResearchType.AppliedResearch => "ورشة عمل",
             _ => type.ToString()
         };
 
@@ -110,20 +114,18 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
         {
             ResearchLanguage.Arabic => "العربية",
             ResearchLanguage.English => "الإنجليزية",
-            ResearchLanguage.Both => "ثنائي اللغة",
+            ResearchLanguage.Bilingual => "ثنائي اللغة",
             _ => language.ToString()
         };
 
         private static string GetTrackDisplayName(ResearchTrack track) => track switch
         {
-            ResearchTrack.ComputerScience => "علوم الحاسوب",
-            ResearchTrack.InformationSystems => "نظم المعلومات",
+            ResearchTrack.InformationTechnology => "تقنية المعلومات",
+            ResearchTrack.InformationSecurity => "أمن المعلومات",
             ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
             ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
             ResearchTrack.DataScience => "علوم البيانات",
-            ResearchTrack.Cybersecurity => "الأمن السيبراني",
-            ResearchTrack.NetworkSystems => "أنظمة الشبكات",
-            ResearchTrack.HumanComputerInteraction => "التفاعل بين الإنسان والحاسوب",
+            ResearchTrack.NetworkingAndCommunications => "الشبكات والاتصالات",
             _ => track.ToString()
         };
     }

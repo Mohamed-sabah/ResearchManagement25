@@ -52,8 +52,8 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
             ResearchStatus.UnderReview => "badge-warning",
             ResearchStatus.Accepted => "badge-success",
             ResearchStatus.Rejected => "badge-danger",
-            ResearchStatus.RequiresRevision => "badge-info",
-            ResearchStatus.Published => "badge-success",
+            ResearchStatus.RequiresMinorRevisions => "badge-info",
+            ResearchStatus.RequiresMajorRevisions => "badge-warning",
             _ => "badge-secondary"
         };
         public string StatusDisplayName => Status switch
@@ -62,8 +62,8 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
             ResearchStatus.UnderReview => "قيد المراجعة",
             ResearchStatus.Accepted => "مقبول",
             ResearchStatus.Rejected => "مرفوض",
-            ResearchStatus.RequiresRevision => "يتطلب تعديل",
-            ResearchStatus.Published => "منشور",
+            ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
+            ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات جوهرية",
             _ => "غير محدد"
         };
     }

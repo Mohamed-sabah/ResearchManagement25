@@ -42,8 +42,8 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
             ResearchStatus.UnderReview => "قيد المراجعة",
             ResearchStatus.Accepted => "مقبول",
             ResearchStatus.Rejected => "مرفوض",
-            ResearchStatus.RequiresRevision => "يتطلب تعديل",
-            ResearchStatus.Published => "منشور",
+            ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
+            ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات كبيرة",
             _ => "غير محدد"
         };
         
@@ -53,21 +53,19 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
             ResearchStatus.UnderReview => "badge-warning",
             ResearchStatus.Accepted => "badge-success",
             ResearchStatus.Rejected => "badge-danger",
-            ResearchStatus.RequiresRevision => "badge-info",
-            ResearchStatus.Published => "badge-success",
+            ResearchStatus.RequiresMinorRevisions => "badge-info",
+            ResearchStatus.RequiresMajorRevisions => "badge-warning",
             _ => "badge-secondary"
         };
         
         public string TrackDisplayName => Research.Track switch
         {
-            ResearchTrack.ComputerScience => "علوم الحاسوب",
-            ResearchTrack.InformationSystems => "نظم المعلومات",
+            ResearchTrack.InformationTechnology => "تقنية المعلومات",
+            ResearchTrack.InformationSecurity => "أمن المعلومات",
             ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
             ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
             ResearchTrack.DataScience => "علوم البيانات",
-            ResearchTrack.Cybersecurity => "الأمن السيبراني",
-            ResearchTrack.NetworkSystems => "أنظمة الشبكات",
-            ResearchTrack.HumanComputerInteraction => "التفاعل بين الإنسان والحاسوب",
+            ResearchTrack.NetworkingAndCommunications => "الشبكات والاتصالات",
             _ => "غير محدد"
         };
     }
@@ -87,8 +85,8 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
             ResearchStatus.UnderReview => "قيد المراجعة",
             ResearchStatus.Accepted => "مقبول",
             ResearchStatus.Rejected => "مرفوض",
-            ResearchStatus.RequiresRevision => "يتطلب تعديل",
-            ResearchStatus.Published => "منشور",
+            ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
+            ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات كبيرة",
             _ => "غير محدد"
         };
         
@@ -98,8 +96,8 @@ namespace ResearchManagement.Web.Models.ViewModels.Research
             ResearchStatus.UnderReview => "قيد المراجعة",
             ResearchStatus.Accepted => "مقبول",
             ResearchStatus.Rejected => "مرفوض",
-            ResearchStatus.RequiresRevision => "يتطلب تعديل",
-            ResearchStatus.Published => "منشور",
+            ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
+            ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات كبيرة",
             _ => "غير محدد"
         };
     }

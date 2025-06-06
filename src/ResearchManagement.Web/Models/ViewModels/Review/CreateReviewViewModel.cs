@@ -87,10 +87,10 @@ namespace ResearchManagement.Web.Models.ViewModels.Review
 
         public string DecisionDisplayName => Decision switch
         {
-            ReviewDecision.Accept => "قبول البحث",
+            ReviewDecision.AcceptAsIs => "قبول البحث",
             ReviewDecision.Reject => "رفض البحث",
-            ReviewDecision.MinorRevisions => "قبول مع تعديلات طفيفة",
-            ReviewDecision.MajorRevisions => "قبول مع تعديلات جوهرية",
+            ReviewDecision.AcceptWithMinorRevisions => "قبول مع تعديلات طفيفة",
+            ReviewDecision.MajorRevisionsRequired => "قبول مع تعديلات جوهرية",
             _ => "غير محدد"
         };
 
@@ -146,17 +146,17 @@ namespace ResearchManagement.Web.Models.ViewModels.Review
         {
             return Decision switch
             {
-                ReviewDecision.Accept => "success",
+                ReviewDecision.AcceptAsIs => "success",
                 ReviewDecision.Reject => "danger",
-                ReviewDecision.MinorRevisions => "info",
-                ReviewDecision.MajorRevisions => "warning",
+                ReviewDecision.AcceptWithMinorRevisions => "info",
+                ReviewDecision.MajorRevisionsRequired => "warning",
                 _ => "secondary"
             };
         }
 
         public bool ShouldRecommendAcceptance()
         {
-            return OverallScore >= 7 && (Decision == ReviewDecision.Accept || Decision == ReviewDecision.MinorRevisions);
+            return OverallScore >= 7 && (Decision == ReviewDecision.AcceptAsIs || Decision == ReviewDecision.AcceptWithMinorRevisions);
         }
 
         public bool ShouldRecommendRejection()

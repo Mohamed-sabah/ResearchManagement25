@@ -10,18 +10,10 @@ using ResearchManagement.Infrastructure.Data;
 
 namespace ResearchManagement.Infrastructure.Repositories
 {
-    public class ReviewRepository : IReviewRepository
+    public class ReviewRepository : GenericRepository<Review>, IReviewRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public ReviewRepository(ApplicationDbContext context)
+        public ReviewRepository(ApplicationDbContext context) : base(context)
         {
-            _context = context;
-        }
-
-        public async Task<Review?> GetByIdAsync(int id)
-        {
-            return await _context.Reviews.FindAsync(id);
         }
 
         public async Task<Review?> GetByIdWithDetailsAsync(int id)
@@ -65,18 +57,7 @@ namespace ResearchManagement.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task AddAsync(Review review)
-        {
-            await _context.Reviews.AddAsync(review);
-        }
-
-        public async Task UpdateAsync(Review review)
-        {
-            _context.Reviews.Update(review);
-            await Task.CompletedTask;
-        }
-
-        public async Task DeleteAsync(int id)
+        public override async Task DeleteAsync(int id)
         {
             var review = await GetByIdAsync(id);
             if (review != null)

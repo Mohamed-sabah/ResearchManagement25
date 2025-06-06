@@ -9,7 +9,7 @@ namespace ResearchManagement.Web.Models.ViewModels
         public int AcceptedResearches { get; set; }
         public int PendingResearches { get; set; }
         public int RejectedResearches { get; set; }
-        public List<Research> RecentResearches { get; set; } = new();
+        public List<Domain.Entities.Research> RecentResearches { get; set; } = new();
     }
 
     public class ResearchFilterModel

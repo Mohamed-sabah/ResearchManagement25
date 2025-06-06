@@ -9,7 +9,7 @@ namespace ResearchManagement.Web.Models.ViewModels
         public int PendingAssignments { get; set; }
         public int CompletedReviews { get; set; }
         public string TrackName { get; set; } = string.Empty;
-        public List<Research> RecentResearches { get; set; } = new();
-        public List<Review> OverdueReviews { get; set; } = new();
+        public List<Domain.Entities.Research> RecentResearches { get; set; } = new();
+        public List<Domain.Entities.Review> OverdueReviews { get; set; } = new();
     }
 }

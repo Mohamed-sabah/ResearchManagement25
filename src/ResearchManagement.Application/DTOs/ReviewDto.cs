@@ -17,9 +17,11 @@ namespace ResearchManagement.Application.DTOs
         public int SignificanceScore { get; set; }
         public int ReferencesScore { get; set; }
         public decimal OverallScore { get; set; }
+        public decimal Score => OverallScore; // Alias for compatibility
         public string? CommentsToAuthor { get; set; }
         public string? CommentsToTrackManager { get; set; }
         public DateTime AssignedDate { get; set; }
+        public DateTime CreatedAt { get; set; }
         public DateTime? CompletedDate { get; set; }
         public DateTime Deadline { get; set; }
         public bool IsCompleted { get; set; }

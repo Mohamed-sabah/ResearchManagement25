@@ -9,7 +9,7 @@ namespace ResearchManagement.Web.Models.ViewModels
         public UserRole UserRole { get; set; }
         public string UserName { get; set; } = string.Empty;
         public DashboardStatistics Statistics { get; set; } = new();
-        public List<Research> RecentItems { get; set; } = new();
+        public List<Domain.Entities.Research> RecentItems { get; set; } = new();
         public List<NotificationItem> Notifications { get; set; } = new();
     }
 

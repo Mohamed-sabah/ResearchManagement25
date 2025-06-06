@@ -892,8 +892,9 @@ namespace ResearchManagement.Infrastructure.Repositories
                 {
                     query = query.Where(r => 
                         r.Title.Contains(searchTerm) ||
-                        r.Abstract.Contains(searchTerm) ||
-                        r.Keywords.Contains(searchTerm) ||
+                        r.AbstractAr.Contains(searchTerm) ||
+                        (r.AbstractEn != null && r.AbstractEn.Contains(searchTerm)) ||
+                        (r.Keywords != null && r.Keywords.Contains(searchTerm)) ||
                         r.Authors.Any(a => a.FirstName.Contains(searchTerm) || a.LastName.Contains(searchTerm)));
                 }
                 break;

@@ -318,12 +318,12 @@
             animation: spin 1s ease-in-out infinite;
         }
 
-        @keyframes spin {
+        @@keyframes spin {
             to { transform: rotate(360deg); }
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @@media (max-width: 768px) {
             .main-content {
                 padding: 1rem 0;
             }
@@ -343,7 +343,7 @@
         }
 
         /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
+        @@media (prefers-color-scheme: dark) {
             :root {
                 --light-color: #1e293b;
                 --dark-color: #f8fafc;
@@ -351,7 +351,7 @@
         }
 
         /* Print Styles */
-        @media print {
+        @@media print {
             .navbar,
             .footer,
             .sidebar,

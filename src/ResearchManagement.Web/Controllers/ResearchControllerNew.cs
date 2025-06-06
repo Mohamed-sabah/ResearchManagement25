@@ -145,10 +145,10 @@ namespace ResearchManagement.Web.Controllers
                     viewModel.CompletedReviews = viewModel.Reviews.Count(r => r.IsCompleted);
                     viewModel.PendingReviews = viewModel.TotalReviews - viewModel.CompletedReviews;
                     
-                    var completedReviews = viewModel.Reviews.Where(r => r.IsCompleted && r.Score.HasValue);
+                    var completedReviews = viewModel.Reviews.Where(r => r.IsCompleted && r.Score > 0);
                     if (completedReviews.Any())
                     {
-                        viewModel.AverageScore = completedReviews.Average(r => r.Score!.Value);
+                        viewModel.AverageScore = (double)completedReviews.Average(r => r.Score);
                     }
                 }
 
@@ -216,20 +216,21 @@ namespace ResearchManagement.Web.Controllers
                     {
                         if (file.Length > 0)
                         {
-                            var fileResult = await _fileService.UploadFileAsync(file, "research");
-                            if (fileResult.Success)
+                            using var memoryStream = new MemoryStream();
+                            await file.CopyToAsync(memoryStream);
+                            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                            var filePath = await _fileService.UploadFileAsync(memoryStream.ToArray(), fileName, file.ContentType);
+                            
+                            uploadedFiles.Add(new ResearchFileDto
                             {
-                                uploadedFiles.Add(new ResearchFileDto
-                                {
-                                    FileName = fileResult.FileName!,
-                                    OriginalFileName = file.FileName,
-                                    FilePath = fileResult.FilePath!,
-                                    ContentType = file.ContentType,
-                                    FileSize = file.Length,
-                                    FileType = GetFileType(file.ContentType),
-                                    Description = "ملف البحث الرئيسي"
-                                });
-                            }
+                                FileName = fileName,
+                                OriginalFileName = file.FileName,
+                                FilePath = filePath,
+                                ContentType = file.ContentType,
+                                FileSize = file.Length,
+                                FileType = GetFileType(file.ContentType),
+                                Description = "ملف البحث الرئيسي"
+                            });
                         }
                     }
                     createResearchDto.Files = uploadedFiles;
@@ -316,7 +317,11 @@ namespace ResearchManagement.Web.Controllers
                 if (user == null)
                     return RedirectToAction("Login", "Account");
 
-                // Handle file uploads if any
+
+
+                var updateResearchDto = _mapper.Map<CreateResearchDto>(model);
+                
+                // Add uploaded files to DTO if any
                 if (files?.Any() == true)
                 {
                     var uploadedFiles = new List<ResearchFileDto>();
@@ -324,27 +329,25 @@ namespace ResearchManagement.Web.Controllers
                     {
                         if (file.Length > 0)
                         {
-                            var fileResult = await _fileService.UploadFileAsync(file, "research");
-                            if (fileResult.Success)
+                            using var memoryStream = new MemoryStream();
+                            await file.CopyToAsync(memoryStream);
+                            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                            var filePath = await _fileService.UploadFileAsync(memoryStream.ToArray(), fileName, file.ContentType);
+                            
+                            uploadedFiles.Add(new ResearchFileDto
                             {
-                                uploadedFiles.Add(new ResearchFileDto
-                                {
-                                    FileName = fileResult.FileName!,
-                                    OriginalFileName = file.FileName,
-                                    FilePath = fileResult.FilePath!,
-                                    ContentType = file.ContentType,
-                                    FileSize = file.Length,
-                                    FileType = GetFileType(file.ContentType),
-                                    Description = "ملف محدث"
-                                });
-                            }
+                                FileName = fileName,
+                                OriginalFileName = file.FileName,
+                                FilePath = filePath,
+                                ContentType = file.ContentType,
+                                FileSize = file.Length,
+                                FileType = GetFileType(file.ContentType),
+                                Description = "ملف محدث"
+                            });
                         }
                     }
-                    // Add new files to existing ones
-                    model.Files = uploadedFiles;
+                    updateResearchDto.Files = uploadedFiles;
                 }
-
-                var updateResearchDto = _mapper.Map<CreateResearchDto>(model);
                 
                 var command = new UpdateResearchCommand
                 {
@@ -421,14 +424,31 @@ namespace ResearchManagement.Web.Controllers
                 if (user == null)
                     return RedirectToAction("Login", "Account");
 
-                var fileResult = await _fileService.GetFileAsync(fileId, user.Id);
-                if (!fileResult.Success || fileResult.FileStream == null)
+                // Get research file info from database first
+                var research = await _mediator.Send(new GetResearchByIdQuery(fileId, user.Id.ToString()));
+                if (research == null || research.Files?.Any() != true)
                 {
                     TempData["ErrorMessage"] = "الملف غير موجود أو ليس لديك صلاحية للوصول إليه";
                     return RedirectToAction(nameof(Index));
                 }
 
-                return File(fileResult.FileStream, fileResult.ContentType!, fileResult.FileName);
+                var file = research.Files.FirstOrDefault();
+                if (file == null)
+                {
+                    TempData["ErrorMessage"] = "الملف غير موجود";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                try
+                {
+                    var fileBytes = await _fileService.DownloadFileAsync(file.FilePath);
+                    return File(fileBytes, file.ContentType, file.OriginalFileName);
+                }
+                catch (Exception)
+                {
+                    TempData["ErrorMessage"] = "حدث خطأ أثناء تحميل الملف";
+                    return RedirectToAction(nameof(Index));
+                }
             }
             catch (Exception ex)
             {
@@ -531,30 +551,28 @@ namespace ResearchManagement.Web.Controllers
             ResearchStatus.UnderReview => "قيد المراجعة",
             ResearchStatus.Accepted => "مقبول",
             ResearchStatus.Rejected => "مرفوض",
-            ResearchStatus.RequiresRevision => "يتطلب تعديل",
-            ResearchStatus.Published => "منشور",
+            ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
+            ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات كبيرة",
             _ => status.ToString()
         };
 
         private static string GetTrackDisplayName(ResearchTrack track) => track switch
         {
-            ResearchTrack.ComputerScience => "علوم الحاسوب",
-            ResearchTrack.InformationSystems => "نظم المعلومات",
+            ResearchTrack.InformationTechnology => "تقنية المعلومات",
+            ResearchTrack.InformationSecurity => "أمن المعلومات",
             ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
             ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
             ResearchTrack.DataScience => "علوم البيانات",
-            ResearchTrack.Cybersecurity => "الأمن السيبراني",
-            ResearchTrack.NetworkSystems => "أنظمة الشبكات",
-            ResearchTrack.HumanComputerInteraction => "التفاعل بين الإنسان والحاسوب",
+            ResearchTrack.NetworkingAndCommunications => "الشبكات والاتصالات",
             _ => track.ToString()
         };
 
         private static FileType GetFileType(string contentType) => contentType.ToLower() switch
         {
-            "application/pdf" => FileType.PDF,
-            "application/msword" or "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => FileType.Document,
-            "image/jpeg" or "image/png" or "image/gif" => FileType.Image,
-            _ => FileType.Other
+            "application/pdf" => FileType.OriginalResearch,
+            "application/msword" or "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => FileType.SupplementaryFiles,
+            "image/jpeg" or "image/png" or "image/gif" => FileType.SupplementaryFiles,
+            _ => FileType.SupplementaryFiles
         };
 
         private static bool CanCreateResearch(UserRole role) => 
@@ -570,7 +588,7 @@ namespace ResearchManagement.Web.Controllers
             if (research.SubmittedById == user.Id)
             {
                 return research.Status == ResearchStatus.Submitted || 
-                       research.Status == ResearchStatus.RequiresRevision;
+                       research.Status == ResearchStatus.RequiresMinorRevisions;
             }
             
             return false;
@@ -588,7 +606,7 @@ namespace ResearchManagement.Web.Controllers
         {
             if (user.Role != UserRole.Reviewer && user.Role != UserRole.SystemAdmin) return false;
             
-            return research.Reviews?.Any(r => r.ReviewerId == user.Id && !r.IsCompleted) == true;
+            return research.Reviews?.Any(r => r.ReviewerId == user.Id.ToString() && !r.IsCompleted) == true;
         }
 
         private static bool CanManageStatus(UserRole role) => 
@@ -599,8 +617,8 @@ namespace ResearchManagement.Web.Controllers
             // Authors, reviewers, track managers, and admins can download files
             return research.SubmittedById == user.Id ||
                    research.Authors?.Any(a => a.UserId == user.Id) == true ||
-                   research.Reviews?.Any(r => r.ReviewerId == user.Id) == true ||
-                   research.AssignedTrackManagerId == user.Id ||
+                   research.Reviews?.Any(r => r.ReviewerId == user.Id.ToString()) == true ||
+                   (int.TryParse(user.Id, out int userId) && research.AssignedTrackManagerId == userId) ||
                    user.Role == UserRole.SystemAdmin;
         }
 
@@ -609,7 +627,7 @@ namespace ResearchManagement.Web.Controllers
             // Only authors can upload files, and only in certain statuses
             return research.SubmittedById == user.Id &&
                    (research.Status == ResearchStatus.Submitted || 
-                    research.Status == ResearchStatus.RequiresRevision);
+                    research.Status == ResearchStatus.RequiresMinorRevisions);
         }
 
         private static bool IsAuthor(ResearchDto research, string userId) => 
@@ -620,7 +638,7 @@ namespace ResearchManagement.Web.Controllers
             research.Reviews?.Any(r => r.ReviewerId == userId) == true;
 
         private static bool IsTrackManager(ResearchDto research, string userId) => 
-            research.AssignedTrackManagerId == userId;
+            int.TryParse(userId, out int id) && research.AssignedTrackManagerId == id;
 
         #endregion
     }

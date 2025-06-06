@@ -19,13 +19,13 @@
 </div>
 
 <!-- إحصائيات سريعة -->
-@if (Model.Any())
+@if (Model.Researches.Items.Any())
 {
     <div class="row mb-4">
         <div class="col-md-3 mb-2">
             <div class="card bg-primary text-white">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">@Model.Count()</h4>
+                    <h4 class="mb-0">@Model.Researches.Items.Count()</h4>
                     <small>إجمالي البحوث</small>
                 </div>
             </div>
@@ -33,7 +33,7 @@
         <div class="col-md-3 mb-2">
             <div class="card bg-success text-white">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">@Model.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Accepted)</h4>
+                    <h4 class="mb-0">@Model.Researches.Items.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Accepted)</h4>
                     <small>مقبولة</small>
                 </div>
             </div>
@@ -41,7 +41,7 @@
         <div class="col-md-3 mb-2">
             <div class="card bg-warning text-white">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">@Model.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.UnderReview || r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted)</h4>
+                    <h4 class="mb-0">@Model.Researches.Items.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.UnderReview || r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted)</h4>
                     <small>قيد المراجعة</small>
                 </div>
             </div>
@@ -49,7 +49,7 @@
         <div class="col-md-3 mb-2">
             <div class="card bg-danger text-white">
                 <div class="card-body text-center">
-                    <h4 class="mb-0">@Model.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Rejected)</h4>
+                    <h4 class="mb-0">@Model.Researches.Items.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Rejected)</h4>
                     <small>مرفوضة</small>
                 </div>
             </div>
@@ -120,7 +120,7 @@
                 </div>
             </div>
             <div class="card-body">
-                @if (Model.Any())
+                @if (Model.Researches.Items.Any())
                 {
                     <!-- عرض الجدول -->
                     <div id="tableView">
@@ -137,7 +137,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var research in Model.OrderByDescending(r => r.SubmissionDate))
+                                    @foreach (var research in Model.Researches.Items.OrderByDescending(r => r.SubmissionDate))
                                     {
                                         <tr data-status="@((int)research.Status)" data-track="@((int)research.Track)" data-title="@research.Title.ToLower()">
                                             <td>
@@ -250,7 +250,7 @@
                     <!-- عرض البطاقات -->
                     <div id="cardView" style="display: none;">
                         <div class="row" id="researchCards">
-                            @foreach (var research in Model.OrderByDescending(r => r.SubmissionDate))
+                            @foreach (var research in Model.Researches.Items.OrderByDescending(r => r.SubmissionDate))
                             {
                                 <div class="col-lg-6 col-xl-4 mb-3 research-card" data-status="@((int)research.Status)" data-track="@((int)research.Track)" data-title="@research.Title.ToLower()">
                                     <div class="card h-100">
@@ -457,7 +457,7 @@
                 var visibleRows = $('#researchTable tbody tr:visible').length;
                 var visibleCards = $('.research-card:visible').length;
 
-                if (visibleRows === 0 && visibleCards === 0 && (@Model.Count() > 0)) {
+                if (visibleRows === 0 && visibleCards === 0 && (@Model.Researches.Items.Count() > 0)) {
                     if (!$('#noResults').length) {
                         var noResultsHtml = '<div id="noResults" class="text-center py-4">' +
                             '<i class="fas fa-search fa-2x text-muted mb-3"></i>' +
@@ -484,7 +484,7 @@
 
             // تحديث عداد النتائج
             function updateCounter() {
-                var total = @Model.Count();
+                var total = @Model.Researches.Items.Count();
                 var visible = $('#researchTable tbody tr:visible').length;
 
                 if (visible !== total) {

@@ -1,19 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using ResearchManagement.Application.Interfaces;
 using ResearchManagement.Infrastructure.Data;
+using ResearchManagement.Infrastructure.Repositories;
 
 namespace ResearchManagement.Infrastructure.Services
 {
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<ResearchRepository> _logger;
         private IDbContextTransaction? _transaction;
         private bool _disposed = false;
+        private IResearchRepository? _research;
 
-        public UnitOfWork(ApplicationDbContext context)
+        public UnitOfWork(ApplicationDbContext context, ILogger<ResearchRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        public IResearchRepository Research => _research ??= new ResearchRepository(_context, _logger);
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

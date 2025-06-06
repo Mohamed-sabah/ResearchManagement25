@@ -8,7 +8,7 @@ namespace ResearchManagement.Web.Models.ViewModels
         public int CompletedReviews { get; set; }
         public int PendingReviews { get; set; }
         public int OverdueReviews { get; set; }
-        public List<Review> RecentReviews { get; set; } = new();
+        public List<Domain.Entities.Review> RecentReviews { get; set; } = new();
     }
 
     public class ReviewFilterModel

@@ -52,14 +52,12 @@ namespace ResearchManagement.Web.Models.ViewModels.Review
 
         public string TrackDisplayName => Track switch
         {
-            ResearchTrack.ComputerScience => "علوم الحاسوب",
-            ResearchTrack.InformationSystems => "نظم المعلومات",
+            ResearchTrack.InformationTechnology => "تقنية المعلومات",
+            ResearchTrack.InformationSecurity => "أمن المعلومات",
             ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
             ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
             ResearchTrack.DataScience => "علوم البيانات",
-            ResearchTrack.Cybersecurity => "الأمن السيبراني",
-            ResearchTrack.NetworkSystems => "أنظمة الشبكات",
-            ResearchTrack.HumanComputerInteraction => "التفاعل بين الإنسان والحاسوب",
+            ResearchTrack.NetworkingAndCommunications => "الشبكات والاتصالات",
             _ => "غير محدد"
         };
 
@@ -85,19 +83,19 @@ namespace ResearchManagement.Web.Models.ViewModels.Review
 
         public string DecisionDisplayName => Decision switch
         {
-            ReviewDecision.Accept => "قبول",
+            ReviewDecision.AcceptAsIs => "قبول",
             ReviewDecision.Reject => "رفض",
-            ReviewDecision.MinorRevisions => "تعديلات طفيفة",
-            ReviewDecision.MajorRevisions => "تعديلات جوهرية",
+            ReviewDecision.AcceptWithMinorRevisions => "تعديلات طفيفة",
+            ReviewDecision.MajorRevisionsRequired => "تعديلات جوهرية",
             _ => "غير محدد"
         };
 
         public string DecisionBadgeClass => Decision switch
         {
-            ReviewDecision.Accept => "badge-success",
+            ReviewDecision.AcceptAsIs => "badge-success",
             ReviewDecision.Reject => "badge-danger",
-            ReviewDecision.MinorRevisions => "badge-info",
-            ReviewDecision.MajorRevisions => "badge-warning",
+            ReviewDecision.AcceptWithMinorRevisions => "badge-info",
+            ReviewDecision.MajorRevisionsRequired => "badge-warning",
             _ => "badge-secondary"
         };
 

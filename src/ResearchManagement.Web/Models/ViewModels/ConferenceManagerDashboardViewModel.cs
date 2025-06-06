@@ -20,7 +20,7 @@ namespace ResearchManagement.Web.Models.ViewModels
         public double AverageReviewTime { get; set; }
 
         // البيانات الحديثة
-        public List<Research> RecentSubmissions { get; set; } = new();
+        public List<Domain.Entities.Research> RecentSubmissions { get; set; } = new();
         public List<User> RecentUsers { get; set; } = new();
 
         // إحصائيات التخصصات

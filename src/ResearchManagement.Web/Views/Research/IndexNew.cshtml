@@ -292,7 +292,7 @@
                                             <small class="text-muted">
                                                 @if (research.AbstractAr.Length > 100)
                                                 {
-                                                    @research.AbstractAr.Substring(0, 100)...
+                                                    @(research.AbstractAr.Substring(0, 100) + "...")
                                                 }
                                                 else
                                                 {
@@ -445,14 +445,12 @@
     {
         return track switch
         {
-            ResearchManagement.Domain.Enums.ResearchTrack.ComputerScience => "علوم الحاسوب",
-            ResearchManagement.Domain.Enums.ResearchTrack.InformationSystems => "نظم المعلومات",
+            ResearchManagement.Domain.Enums.ResearchTrack.InformationTechnology => "تقنية المعلومات",
             ResearchManagement.Domain.Enums.ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
             ResearchManagement.Domain.Enums.ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
             ResearchManagement.Domain.Enums.ResearchTrack.DataScience => "علوم البيانات",
-            ResearchManagement.Domain.Enums.ResearchTrack.Cybersecurity => "الأمن السيبراني",
-            ResearchManagement.Domain.Enums.ResearchTrack.NetworkSystems => "أنظمة الشبكات",
-            ResearchManagement.Domain.Enums.ResearchTrack.HumanComputerInteraction => "التفاعل بين الإنسان والحاسوب",
+            ResearchManagement.Domain.Enums.ResearchTrack.InformationSecurity => "أمن المعلومات",
+            ResearchManagement.Domain.Enums.ResearchTrack.NetworkingAndCommunications => "الشبكات والاتصالات",
             _ => track.ToString()
         };
     }
@@ -465,8 +463,8 @@
             ResearchManagement.Domain.Enums.ResearchStatus.UnderReview => ("قيد المراجعة", "warning"),
             ResearchManagement.Domain.Enums.ResearchStatus.Accepted => ("مقبول", "success"),
             ResearchManagement.Domain.Enums.ResearchStatus.Rejected => ("مرفوض", "danger"),
-            ResearchManagement.Domain.Enums.ResearchStatus.RequiresRevision => ("يتطلب تعديل", "info"),
-            ResearchManagement.Domain.Enums.ResearchStatus.Published => ("منشور", "success"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions => ("يتطلب تعديلات طفيفة", "info"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions => ("يتطلب تعديلات كبيرة", "warning"),
             _ => ("غير محدد", "secondary")
         };
     }
@@ -478,7 +476,7 @@
 
         if (research.SubmittedById == userId && 
             (research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted || 
-             research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresRevision))
+             research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions))
             return true;
 
         return false;
