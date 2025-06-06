@@ -1,0 +1,578 @@
+@model ResearchManagement.Web.Models.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = "لوحة التحكم";
+}
+
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-2">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                مرحباً، @Model.UserName
+                            </h2>
+                            <p class="mb-0 opacity-75">
+                                @Model.RoleDisplayName | آخر دخول: @Model.LastLoginDate?.ToString("yyyy/MM/dd HH:mm")
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                @if (Model.CanCreateResearch)
+                                {
+                                    <a asp-controller="Research" asp-action="Create" class="btn btn-light">
+                                        <i class="fas fa-plus me-2"></i>بحث جديد
+                                    </a>
+                                }
+                                <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-light">
+                                    <i class="fas fa-user me-2"></i>الملف الشخصي
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                            <i class="fas fa-file-alt fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-primary mb-1">@Model.Statistics.TotalResearches</h3>
+                    <p class="text-muted mb-0">إجمالي البحوث</p>
+                    @if (Model.Statistics.ResearchGrowthRate != 0)
+                    {
+                        <small class="text-@(Model.Statistics.ResearchGrowthRate > 0 ? "success" : "danger")">
+                            <i class="fas fa-arrow-@(Model.Statistics.ResearchGrowthRate > 0 ? "up" : "down")"></i>
+                            @Math.Abs(Model.Statistics.ResearchGrowthRate)% من الشهر الماضي
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-warning mb-1">@Model.Statistics.PendingReviews</h3>
+                    <p class="text-muted mb-0">مراجعات معلقة</p>
+                    @if (Model.Statistics.PendingReviews > 0)
+                    {
+                        <small class="text-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            تتطلب انتباهك
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-success mb-1">@Model.Statistics.CompletedReviews</h3>
+                    <p class="text-muted mb-0">مراجعات مكتملة</p>
+                    @if (Model.Statistics.CompletionRate > 0)
+                    {
+                        <small class="text-success">
+                            معدل الإنجاز: @Model.Statistics.CompletionRate.ToString("F1")%
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                            <i class="fas fa-star fa-2x text-info"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-info mb-1">@Model.Statistics.AverageScore.ToString("F1")</h3>
+                    <p class="text-muted mb-0">متوسط التقييم</p>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: @(Model.Statistics.AverageScore * 10)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activities -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>الأنشطة الأخيرة
+                    </h5>
+                    <a asp-controller="Activity" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                        عرض الكل
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentActivities.Any())
+                    {
+                        <div class="timeline">
+                            @foreach (var activity in Model.RecentActivities.Take(10))
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-@activity.TypeColor"></div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">@activity.Title</h6>
+                                                <p class="text-muted mb-1">@activity.Description</p>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @activity.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                                                </small>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(activity.ActionUrl))
+                                            {
+                                                <a href="@activity.ActionUrl" class="btn btn-outline-primary btn-sm">
+                                                    عرض
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">لا توجد أنشطة حديثة</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Notifications -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>إجراءات سريعة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        @if (Model.CanCreateResearch)
+                        {
+                            <a asp-controller="Research" asp-action="Create" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>تقديم بحث جديد
+                            </a>
+                        }
+                        
+                        <a asp-controller="Research" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>عرض البحوث
+                        </a>
+
+                        @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Reviewer || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin)
+                        {
+                            <a asp-controller="Review" asp-action="Index" class="btn btn-outline-warning">
+                                <i class="fas fa-clipboard-check me-2"></i>المراجعات
+                            </a>
+                        }
+
+                        @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin)
+                        {
+                            <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-cogs me-2"></i>إدارة النظام
+                            </a>
+                        }
+
+                        <hr>
+
+                        <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-info">
+                            <i class="fas fa-chart-bar me-2"></i>التقارير
+                        </a>
+
+                        <a asp-controller="Help" asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-question-circle me-2"></i>المساعدة
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>الإشعارات
+                    </h5>
+                    @if (Model.Notifications.Any())
+                    {
+                        <span class="badge bg-danger">@Model.Notifications.Count(n => !n.IsRead)</span>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (Model.Notifications.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var notification in Model.Notifications.Take(5))
+                            {
+                                <div class="list-group-item px-0 @(notification.IsRead ? "" : "bg-light")">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-@notification.Icon text-@notification.TypeColor"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-1 @(notification.IsRead ? "text-muted" : "")">
+                                                @notification.Title
+                                            </h6>
+                                            <p class="mb-1 small @(notification.IsRead ? "text-muted" : "")">
+                                                @notification.Message
+                                            </p>
+                                            <small class="text-muted">
+                                                @notification.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                                            </small>
+                                        </div>
+                                        @if (!notification.IsRead)
+                                        {
+                                            <div class="flex-shrink-0">
+                                                <span class="badge bg-primary rounded-pill">جديد</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        
+                        @if (Model.Notifications.Count > 5)
+                        {
+                            <div class="text-center mt-3">
+                                <a asp-controller="Notifications" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                                    عرض جميع الإشعارات (@Model.Notifications.Count)
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-3">
+                            <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">لا توجد إشعارات جديدة</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.TrackManager)
+    {
+        <div class="row mt-4">
+            <!-- Research Status Chart -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>توزيع حالات البحوث
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="researchStatusChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Submissions Chart -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>البحوث المقدمة شهرياً
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlySubmissionsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Track Performance -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>أداء المسارات
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>المسار</th>
+                                        <th>البحوث المقدمة</th>
+                                        <th>المراجعات المكتملة</th>
+                                        <th>متوسط التقييم</th>
+                                        <th>معدل القبول</th>
+                                        <th>متوسط وقت المراجعة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var track in Model.TrackPerformance)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@track.TrackName</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">@track.TotalResearches</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">@track.CompletedReviews</span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-2">@track.AverageScore.ToString("F1")</span>
+                                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                                        <div class="progress-bar" style="width: @(track.AverageScore * 10)%"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@(track.AcceptanceRate >= 70 ? "success" : track.AcceptanceRate >= 50 ? "warning" : "danger")">
+                                                    @track.AcceptanceRate.ToString("F1")%
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">@track.AverageReviewTime أيام</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Research Status Pie Chart
+            @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.TrackManager)
+            {
+                <text>
+                const statusCtx = document.getElementById('researchStatusChart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.StatusDistribution.Select(s => s.StatusName))),
+                        datasets: [{
+                            data: @Html.Raw(Json.Serialize(Model.StatusDistribution.Select(s => s.Count))),
+                            backgroundColor: [
+                                '#3b82f6', // Primary
+                                '#f59e0b', // Warning
+                                '#10b981', // Success
+                                '#ef4444', // Danger
+                                '#6366f1', // Indigo
+                                '#8b5cf6'  // Purple
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                // Monthly Submissions Line Chart
+                const monthlyCtx = document.getElementById('monthlySubmissionsChart').getContext('2d');
+                new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.MonthlySubmissions.Select(m => m.MonthName))),
+                        datasets: [{
+                            label: 'البحوث المقدمة',
+                            data: @Html.Raw(Json.Serialize(Model.MonthlySubmissions.Select(m => m.Count))),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                </text>
+            }
+
+            // Auto-refresh dashboard every 5 minutes
+            setInterval(function() {
+                // Refresh notification count
+                $.get('/api/notifications/count', function(data) {
+                    if (data.count > 0) {
+                        $('#notificationCount').text(data.count).show();
+                    } else {
+                        $('#notificationCount').hide();
+                    }
+                });
+            }, 300000); // 5 minutes
+
+            // Mark notifications as read when clicked
+            $('.list-group-item').on('click', function() {
+                const notificationId = $(this).data('notification-id');
+                if (notificationId) {
+                    $.post('/api/notifications/mark-read', { id: notificationId });
+                    $(this).removeClass('bg-light');
+                    $(this).find('.badge').remove();
+                }
+            });
+
+            // Animate counters
+            $('.card-body h3').each(function() {
+                const $this = $(this);
+                const countTo = parseInt($this.text());
+                
+                $({ countNum: 0 }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 2000,
+                    easing: 'linear',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -22px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e9ecef;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #dee2e6;
+        }
+
+        .card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .progress {
+            background-color: #e9ecef;
+        }
+
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            font-size: 0.75em;
+        }
+
+        @media (max-width: 768px) {
+            .timeline {
+                padding-left: 20px;
+            }
+            
+            .timeline-marker {
+                left: -17px;
+            }
+        }
+    </style>
+}

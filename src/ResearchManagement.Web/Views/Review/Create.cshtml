@@ -1,0 +1,477 @@
+@model ResearchManagement.Web.Models.ViewModels.Review.CreateReviewViewModel
+@{
+    ViewData["Title"] = "مراجعة البحث";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-clipboard-check me-2 text-primary"></i>مراجعة البحث</h2>
+            <p class="text-muted">تقييم ومراجعة البحث العلمي المقدم</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Research Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>معلومات البحث</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">@Model.Research.Title</h6>
+                    @if (!string.IsNullOrEmpty(Model.Research.TitleEn))
+                    {
+                        <p class="text-muted small">@Model.Research.TitleEn</p>
+                    }
+
+                    <div class="mb-3">
+                        <strong>المؤلفون:</strong>
+                        <ul class="list-unstyled mt-1">
+                            @foreach (var author in Model.Research.Authors)
+                            {
+                                <li class="small">
+                                    <i class="fas fa-user me-1"></i>
+                                    @author.FullName
+                                    @if (author.IsCorresponding)
+                                    {
+                                        <span class="badge bg-primary ms-1">مراسل</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>المسار:</strong>
+                        <span class="badge bg-info ms-1">@Model.Research.TrackDisplayName</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>نوع البحث:</strong>
+                        <span class="text-muted">@Model.Research.ResearchTypeDisplayName</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>تاريخ التقديم:</strong>
+                        <span class="text-muted">@Model.Research.SubmissionDate.ToString("yyyy/MM/dd")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>الملخص:</strong>
+                        <div class="border rounded p-2 bg-light small" style="max-height: 150px; overflow-y: auto;">
+                            @Model.Research.AbstractAr
+                        </div>
+                    </div>
+
+                    @if (Model.Research.Files?.Any() == true)
+                    {
+                        <div class="mb-3">
+                            <strong>الملفات:</strong>
+                            <div class="list-group list-group-flush">
+                                @foreach (var file in Model.Research.Files)
+                                {
+                                    <div class="list-group-item px-0 py-2">
+                                        <a asp-controller="Research" asp-action="DownloadFile" asp-route-fileId="@file.Id" 
+                                           class="text-decoration-none">
+                                            <i class="fas fa-file-pdf me-2 text-danger"></i>
+                                            @file.OriginalFileName
+                                        </a>
+                                        <small class="text-muted d-block">@file.Description</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Form -->
+        <div class="col-lg-8">
+            <form asp-action="Create" method="post" id="reviewForm">
+                <input type="hidden" asp-for="ResearchId" />
+                <input type="hidden" asp-for="ReviewerId" />
+
+                <!-- Review Criteria -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-star me-2"></i>معايير التقييم</h5>
+                    </div>
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Originality -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">الأصالة والجدة (25%)</label>
+                            <div class="rating-container mb-2">
+                                <div class="btn-group" role="group" data-rating="originality">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <input type="radio" class="btn-check" name="OriginalityScore" value="@i" id="originality@i">
+                                        <label class="btn btn-outline-primary btn-sm" for="originality@i">@i</label>
+                                    }
+                                </div>
+                            </div>
+                            <textarea asp-for="OriginalityComments" class="form-control" rows="2" 
+                                      placeholder="تعليقات على الأصالة والجدة..."></textarea>
+                            <span asp-validation-for="OriginalityComments" class="text-danger"></span>
+                        </div>
+
+                        <!-- Methodology -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">المنهجية والطريقة (25%)</label>
+                            <div class="rating-container mb-2">
+                                <div class="btn-group" role="group" data-rating="methodology">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <input type="radio" class="btn-check" name="MethodologyScore" value="@i" id="methodology@i">
+                                        <label class="btn btn-outline-primary btn-sm" for="methodology@i">@i</label>
+                                    }
+                                </div>
+                            </div>
+                            <textarea asp-for="MethodologyComments" class="form-control" rows="2" 
+                                      placeholder="تعليقات على المنهجية..."></textarea>
+                            <span asp-validation-for="MethodologyComments" class="text-danger"></span>
+                        </div>
+
+                        <!-- Results -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">النتائج والتحليل (25%)</label>
+                            <div class="rating-container mb-2">
+                                <div class="btn-group" role="group" data-rating="results">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <input type="radio" class="btn-check" name="ResultsScore" value="@i" id="results@i">
+                                        <label class="btn btn-outline-primary btn-sm" for="results@i">@i</label>
+                                    }
+                                </div>
+                            </div>
+                            <textarea asp-for="ResultsComments" class="form-control" rows="2" 
+                                      placeholder="تعليقات على النتائج والتحليل..."></textarea>
+                            <span asp-validation-for="ResultsComments" class="text-danger"></span>
+                        </div>
+
+                        <!-- Writing Quality -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">جودة الكتابة والعرض (25%)</label>
+                            <div class="rating-container mb-2">
+                                <div class="btn-group" role="group" data-rating="writing">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <input type="radio" class="btn-check" name="WritingScore" value="@i" id="writing@i">
+                                        <label class="btn btn-outline-primary btn-sm" for="writing@i">@i</label>
+                                    }
+                                </div>
+                            </div>
+                            <textarea asp-for="WritingComments" class="form-control" rows="2" 
+                                      placeholder="تعليقات على جودة الكتابة..."></textarea>
+                            <span asp-validation-for="WritingComments" class="text-danger"></span>
+                        </div>
+
+                        <!-- Overall Score Display -->
+                        <div class="alert alert-info">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <strong>التقييم الإجمالي:</strong>
+                                    <span id="overallScore" class="fs-4 text-primary">0</span>/10
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="progress">
+                                        <div id="overallProgress" class="progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments and Decision -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-comments me-2"></i>التعليقات والقرار</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="CommentsToAuthor" class="form-label">تعليقات للمؤلف *</label>
+                            <textarea asp-for="CommentsToAuthor" class="form-control" rows="5" 
+                                      placeholder="اكتب تعليقاتك وملاحظاتك للمؤلف هنا..."></textarea>
+                            <span asp-validation-for="CommentsToAuthor" class="text-danger"></span>
+                            <div class="form-text">هذه التعليقات ستكون مرئية للمؤلف</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CommentsToTrackManager" class="form-label">تعليقات لمدير المسار</label>
+                            <textarea asp-for="CommentsToTrackManager" class="form-control" rows="3" 
+                                      placeholder="تعليقات سرية لمدير المسار..."></textarea>
+                            <span asp-validation-for="CommentsToTrackManager" class="text-danger"></span>
+                            <div class="form-text">هذه التعليقات سرية ولن تكون مرئية للمؤلف</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Decision" class="form-label">القرار النهائي *</label>
+                            <select asp-for="Decision" class="form-select">
+                                <option value="">اختر القرار</option>
+                                <option value="1">قبول البحث</option>
+                                <option value="2">رفض البحث</option>
+                                <option value="3">قبول مع تعديلات طفيفة</option>
+                                <option value="4">قبول مع تعديلات جوهرية</option>
+                            </select>
+                            <span asp-validation-for="Decision" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Recommendations" class="form-label">التوصيات</label>
+                            <textarea asp-for="Recommendations" class="form-control" rows="3" 
+                                      placeholder="توصيات للتحسين أو التطوير..."></textarea>
+                            <span asp-validation-for="Recommendations" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confidentiality Notice -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>تنبيه:</strong> جميع المعلومات المتعلقة بهذا البحث سرية ولا يجب مشاركتها مع أطراف خارجية.
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-secondary me-2" id="saveDraft">
+                                    <i class="fas fa-save me-2"></i>حفظ كمسودة
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-danger">
+                                    <i class="fas fa-times me-2"></i>إلغاء
+                                </a>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button type="submit" class="btn btn-success btn-lg" id="submitReview">
+                                    <i class="fas fa-check me-2"></i>إرسال المراجعة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Calculate overall score
+            function calculateOverallScore() {
+                let total = 0;
+                let count = 0;
+                
+                $('input[type="radio"]:checked').each(function() {
+                    if ($(this).attr('name').includes('Score')) {
+                        total += parseInt($(this).val());
+                        count++;
+                    }
+                });
+                
+                const average = count > 0 ? (total / count).toFixed(1) : 0;
+                $('#overallScore').text(average);
+                $('#overallProgress').css('width', (average * 10) + '%');
+                
+                // Update progress bar color based on score
+                const progressBar = $('#overallProgress');
+                progressBar.removeClass('bg-danger bg-warning bg-success');
+                if (average < 4) {
+                    progressBar.addClass('bg-danger');
+                } else if (average < 7) {
+                    progressBar.addClass('bg-warning');
+                } else {
+                    progressBar.addClass('bg-success');
+                }
+            }
+
+            // Rating button interactions
+            $('input[type="radio"]').change(function() {
+                calculateOverallScore();
+                
+                // Highlight selected rating
+                const container = $(this).closest('.btn-group');
+                const value = parseInt($(this).val());
+                
+                container.find('label').each(function(index) {
+                    const btn = $(this);
+                    if (index < value) {
+                        btn.removeClass('btn-outline-primary').addClass('btn-primary');
+                    } else {
+                        btn.removeClass('btn-primary').addClass('btn-outline-primary');
+                    }
+                });
+            });
+
+            // Save as draft
+            $('#saveDraft').click(function() {
+                const form = $('#reviewForm');
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'IsDraft',
+                    value: 'true'
+                }).appendTo(form);
+                
+                form.submit();
+            });
+
+            // Form validation
+            $('#reviewForm').on('submit', function(e) {
+                let isValid = true;
+                let missingScores = [];
+                
+                // Check if all scores are provided
+                const scoreFields = ['OriginalityScore', 'MethodologyScore', 'ResultsScore', 'WritingScore'];
+                scoreFields.forEach(function(field) {
+                    if (!$(`input[name="${field}"]:checked`).length) {
+                        isValid = false;
+                        missingScores.push(field);
+                    }
+                });
+                
+                // Check required text fields
+                const requiredFields = ['CommentsToAuthor', 'Decision'];
+                requiredFields.forEach(function(field) {
+                    const element = $(`[name="${field}"]`);
+                    if (!element.val().trim()) {
+                        isValid = false;
+                        element.addClass('is-invalid');
+                    } else {
+                        element.removeClass('is-invalid');
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    
+                    let message = 'يرجى إكمال جميع الحقول المطلوبة:\n';
+                    if (missingScores.length > 0) {
+                        message += '- تقييمات المعايير\n';
+                    }
+                    if (!$('[name="CommentsToAuthor"]').val().trim()) {
+                        message += '- تعليقات للمؤلف\n';
+                    }
+                    if (!$('[name="Decision"]').val()) {
+                        message += '- القرار النهائي\n';
+                    }
+                    
+                    alert(message);
+                    
+                    // Scroll to first invalid field
+                    const firstInvalid = $('.is-invalid').first();
+                    if (firstInvalid.length) {
+                        $('html, body').animate({
+                            scrollTop: firstInvalid.offset().top - 100
+                        }, 500);
+                    }
+                }
+            });
+
+            // Auto-save functionality (every 2 minutes)
+            setInterval(function() {
+                if ($('#reviewForm input, #reviewForm textarea, #reviewForm select').filter(function() {
+                    return $(this).val() !== '';
+                }).length > 0) {
+                    // Auto-save logic here
+                    console.log('Auto-saving review...');
+                }
+            }, 120000); // 2 minutes
+
+            // Character count for text areas
+            $('textarea').each(function() {
+                const maxLength = $(this).attr('maxlength');
+                if (maxLength) {
+                    const counter = $('<div class="form-text text-end"></div>');
+                    $(this).after(counter);
+                    
+                    const updateCounter = () => {
+                        const remaining = maxLength - $(this).val().length;
+                        counter.text(`${remaining} حرف متبقي`);
+                        counter.toggleClass('text-danger', remaining < 50);
+                    };
+                    
+                    $(this).on('input', updateCounter);
+                    updateCounter();
+                }
+            });
+        });
+
+        // Confirmation before leaving page with unsaved changes
+        let formChanged = false;
+        $('#reviewForm input, #reviewForm textarea, #reviewForm select').on('change input', function() {
+            formChanged = true;
+        });
+
+        $(window).on('beforeunload', function() {
+            if (formChanged) {
+                return 'لديك تغييرات غير محفوظة. هل تريد المغادرة؟';
+            }
+        });
+
+        $('#reviewForm').on('submit', function() {
+            formChanged = false;
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .rating-container .btn-group {
+            flex-wrap: wrap;
+        }
+
+        .rating-container .btn {
+            min-width: 40px;
+        }
+
+        .is-invalid {
+            border-color: #dc3545;
+        }
+
+        .card-header h5 {
+            color: #495057;
+        }
+
+        .progress {
+            height: 10px;
+        }
+
+        .alert-info {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+            color: #1976d2;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .form-text.text-danger {
+            font-weight: bold;
+        }
+
+        .btn-check:checked + .btn {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+    </style>
+}
