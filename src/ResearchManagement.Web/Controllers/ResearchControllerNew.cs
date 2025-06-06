@@ -558,14 +558,14 @@ namespace ResearchManagement.Web.Controllers
         };
 
         private static bool CanCreateResearch(UserRole role) => 
-            role == UserRole.Researcher || role == UserRole.Admin;
+            role == UserRole.Researcher || role == UserRole.SystemAdmin;
 
         private static bool CanManageResearches(UserRole role) => 
-            role == UserRole.TrackManager || role == UserRole.Admin;
+            role == UserRole.TrackManager || role == UserRole.SystemAdmin;
 
         private static bool CanEditResearch(ResearchDto research, User user)
         {
-            if (user.Role == UserRole.Admin) return true;
+            if (user.Role == UserRole.SystemAdmin) return true;
             
             if (research.SubmittedById == user.Id)
             {
@@ -578,7 +578,7 @@ namespace ResearchManagement.Web.Controllers
 
         private static bool CanDeleteResearch(ResearchDto research, User user)
         {
-            if (user.Role == UserRole.Admin) return true;
+            if (user.Role == UserRole.SystemAdmin) return true;
             
             return research.SubmittedById == user.Id && 
                    research.Status == ResearchStatus.Submitted;
@@ -586,13 +586,13 @@ namespace ResearchManagement.Web.Controllers
 
         private static bool CanReviewResearch(ResearchDto research, User user)
         {
-            if (user.Role != UserRole.Reviewer && user.Role != UserRole.Admin) return false;
+            if (user.Role != UserRole.Reviewer && user.Role != UserRole.SystemAdmin) return false;
             
             return research.Reviews?.Any(r => r.ReviewerId == user.Id && !r.IsCompleted) == true;
         }
 
         private static bool CanManageStatus(UserRole role) => 
-            role == UserRole.TrackManager || role == UserRole.Admin;
+            role == UserRole.TrackManager || role == UserRole.SystemAdmin;
 
         private static bool CanDownloadFiles(ResearchDto research, User user)
         {
@@ -601,7 +601,7 @@ namespace ResearchManagement.Web.Controllers
                    research.Authors?.Any(a => a.UserId == user.Id) == true ||
                    research.Reviews?.Any(r => r.ReviewerId == user.Id) == true ||
                    research.AssignedTrackManagerId == user.Id ||
-                   user.Role == UserRole.Admin;
+                   user.Role == UserRole.SystemAdmin;
         }
 
         private static bool CanUploadFiles(ResearchDto research, User user)

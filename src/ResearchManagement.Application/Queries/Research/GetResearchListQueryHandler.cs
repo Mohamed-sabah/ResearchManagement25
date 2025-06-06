@@ -107,7 +107,7 @@ namespace ResearchManagement.Application.Queries.Research
                     return researches.Where(r => 
                         r.AssignedTrackManagerId == userId).ToList();
 
-                case UserRole.Admin:
+                case UserRole.SystemAdmin:
                     // الأدمن يرى كل شيء
                     return researches;
 

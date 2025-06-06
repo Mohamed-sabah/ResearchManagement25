@@ -195,14 +195,14 @@
                             <i class="fas fa-list me-2"></i>عرض البحوث
                         </a>
 
-                        @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Reviewer || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin)
+                        @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Reviewer || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.SystemAdmin)
                         {
                             <a asp-controller="Review" asp-action="Index" class="btn btn-outline-warning">
                                 <i class="fas fa-clipboard-check me-2"></i>المراجعات
                             </a>
                         }
 
-                        @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin)
+                        @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.SystemAdmin)
                         {
                             <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary">
                                 <i class="fas fa-cogs me-2"></i>إدارة النظام
@@ -288,7 +288,7 @@
     </div>
 
     <!-- Charts Section -->
-    @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.TrackManager)
+    @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.SystemAdmin || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.TrackManager)
     {
         <div class="row mt-4">
             <!-- Research Status Chart -->
@@ -388,7 +388,7 @@
     <script>
         $(document).ready(function() {
             // Research Status Pie Chart
-            @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.Admin || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.TrackManager)
+            @if (Model.UserRole == ResearchManagement.Domain.Enums.UserRole.SystemAdmin || Model.UserRole == ResearchManagement.Domain.Enums.UserRole.TrackManager)
             {
                 <text>
                 const statusCtx = document.getElementById('researchStatusChart').getContext('2d');

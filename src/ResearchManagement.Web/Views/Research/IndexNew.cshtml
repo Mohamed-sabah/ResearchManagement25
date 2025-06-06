@@ -473,7 +473,7 @@
 
     private bool CanEditResearch(ResearchManagement.Application.DTOs.ResearchDto research, string userId, ResearchManagement.Domain.Enums.UserRole userRole)
     {
-        if (userRole == ResearchManagement.Domain.Enums.UserRole.Admin)
+        if (userRole == ResearchManagement.Domain.Enums.UserRole.SystemAdmin)
             return true;
 
         if (research.SubmittedById == userId && 

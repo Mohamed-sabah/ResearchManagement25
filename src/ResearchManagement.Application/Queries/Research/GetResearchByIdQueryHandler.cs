@@ -74,7 +74,7 @@ namespace ResearchManagement.Application.Queries.Research
 
             // الأدمن يمكنه الوصول لكل شيء
             var user = await _researchRepository.GetUserByIdAsync(userId);
-            if (user?.Role == UserRole.Admin)
+            if (user?.Role == UserRole.SystemAdmin)
                 return true;
 
             return false;
