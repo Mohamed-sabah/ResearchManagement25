@@ -1,0 +1,570 @@
+@model ResearchManagement.Web.Models.ViewModels.Research.ResearchDetailsViewModel
+@{
+    ViewData["Title"] = "تفاصيل البحث";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">البحوث</a></li>
+                    <li class="breadcrumb-item active">تفاصيل البحث</li>
+                </ol>
+            </nav>
+            <h2 class="text-primary">@Model.Research.Title</h2>
+            @if (!string.IsNullOrEmpty(Model.Research.TitleEn))
+            {
+                <h5 class="text-muted">@Model.Research.TitleEn</h5>
+            }
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                @if (Model.CanEdit)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Research.Id" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>تعديل
+                    </a>
+                }
+                @if (Model.CanReview)
+                {
+                    <a asp-controller="Review" asp-action="Create" asp-route-researchId="@Model.Research.Id" class="btn btn-info">
+                        <i class="fas fa-clipboard-check me-2"></i>مراجعة
+                    </a>
+                }
+                @if (Model.CanManageStatus)
+                {
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#statusModal">
+                        <i class="fas fa-cog me-2"></i>إدارة الحالة
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Basic Info -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>معلومات أساسية</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>الحالة:</strong></td>
+                                    <td><span class="badge @Model.StatusBadgeClass fs-6">@Model.StatusDisplayName</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>المسار:</strong></td>
+                                    <td><span class="badge bg-info fs-6">@Model.TrackDisplayName</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>نوع البحث:</strong></td>
+                                    <td>@GetResearchTypeDisplayName(Model.Research.ResearchType)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>اللغة:</strong></td>
+                                    <td>@GetLanguageDisplayName(Model.Research.Language)</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>تاريخ التقديم:</strong></td>
+                                    <td>@Model.Research.SubmissionDate.ToString("yyyy/MM/dd HH:mm")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>آخر تحديث:</strong></td>
+                                    <td>
+                                        @if (Model.Research.UpdatedAt.HasValue)
+                                        {
+                                            @Model.Research.UpdatedAt.Value.ToString("yyyy/MM/dd HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>مدير المسار:</strong></td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.Research.AssignedTrackManagerName))
+                                        {
+                                            @Model.Research.AssignedTrackManagerName
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">غير محدد</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>المقدم بواسطة:</strong></td>
+                                    <td>@Model.Research.SubmittedByName</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>إحصائيات المراجعة</h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-4">
+                            <h4 class="text-primary">@Model.TotalReviews</h4>
+                            <small class="text-muted">إجمالي</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-success">@Model.CompletedReviews</h4>
+                            <small class="text-muted">مكتملة</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">@Model.PendingReviews</h4>
+                            <small class="text-muted">معلقة</small>
+                        </div>
+                    </div>
+                    @if (Model.AverageScore > 0)
+                    {
+                        <hr>
+                        <div>
+                            <h5 class="text-info">@Model.AverageScore.ToString("F1")</h5>
+                            <small class="text-muted">متوسط التقييم</small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Abstract and Keywords -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-text me-2"></i>الملخص والكلمات المفتاحية</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>الملخص العربي:</h6>
+                            <p class="text-justify">@Model.Research.AbstractAr</p>
+                            
+                            @if (!string.IsNullOrEmpty(Model.Research.Keywords))
+                            {
+                                <h6>الكلمات المفتاحية:</h6>
+                                <div>
+                                    @foreach (var keyword in Model.Research.Keywords.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <span class="badge bg-light text-dark me-1 mb-1">@keyword.Trim()</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            @if (!string.IsNullOrEmpty(Model.Research.AbstractEn))
+                            {
+                                <h6>Abstract (English):</h6>
+                                <p class="text-justify">@Model.Research.AbstractEn</p>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(Model.Research.KeywordsEn))
+                            {
+                                <h6>Keywords:</h6>
+                                <div>
+                                    @foreach (var keyword in Model.Research.KeywordsEn.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <span class="badge bg-light text-dark me-1 mb-1">@keyword.Trim()</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authors -->
+    @if (Model.Research.Authors?.Any() == true)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>المؤلفون</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach (var author in Model.Research.Authors.OrderBy(a => a.Order))
+                            {
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                @author.FirstName @author.LastName
+                                                @if (author.IsCorresponding)
+                                                {
+                                                    <span class="badge bg-primary ms-1">مراسل</span>
+                                                }
+                                            </h6>
+                                            @if (!string.IsNullOrEmpty(author.FirstNameEn) && !string.IsNullOrEmpty(author.LastNameEn))
+                                            {
+                                                <p class="card-text"><small class="text-muted">@author.FirstNameEn @author.LastNameEn</small></p>
+                                            }
+                                            <p class="card-text">
+                                                <i class="fas fa-envelope me-1"></i>@author.Email<br>
+                                                @if (!string.IsNullOrEmpty(author.Institution))
+                                                {
+                                                    <i class="fas fa-university me-1"></i>@author.Institution<br>
+                                                }
+                                                @if (!string.IsNullOrEmpty(author.AcademicDegree))
+                                                {
+                                                    <i class="fas fa-graduation-cap me-1"></i>@author.AcademicDegree<br>
+                                                }
+                                                @if (!string.IsNullOrEmpty(author.OrcidId))
+                                                {
+                                                    <i class="fab fa-orcid me-1"></i>@author.OrcidId
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Files -->
+    @if (Model.Files?.Any() == true)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-file me-2"></i>الملفات المرفقة</h5>
+                        @if (Model.CanUploadFiles)
+                        {
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                                <i class="fas fa-upload me-1"></i>رفع ملف
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>اسم الملف</th>
+                                        <th>النوع</th>
+                                        <th>الحجم</th>
+                                        <th>تاريخ الرفع</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var file in Model.Files.Where(f => f.IsActive))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                @file.OriginalFileName
+                                                @if (!string.IsNullOrEmpty(file.Description))
+                                                {
+                                                    <br><small class="text-muted">@file.Description</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@GetFileTypeDisplayName(file.FileType)</span>
+                                            </td>
+                                            <td>@FormatFileSize(file.FileSize)</td>
+                                            <td>@file.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                                            <td>
+                                                @if (Model.CanDownloadFiles)
+                                                {
+                                                    <a asp-action="DownloadFile" asp-route-fileId="@file.Id" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                }
+                                                @if (Model.CanEdit)
+                                                {
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteFile(@file.Id)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Reviews -->
+    @if (Model.Reviews?.Any() == true)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>المراجعات</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+                        {
+                            <div class="card mb-3">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@review.ReviewerName</strong>
+                                        <span class="badge @(review.IsCompleted ? "bg-success" : "bg-warning") ms-2">
+                                            @(review.IsCompleted ? "مكتملة" : "قيد التنفيذ")
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">@review.CreatedAt.ToString("yyyy/MM/dd HH:mm")</small>
+                                </div>
+                                @if (review.IsCompleted)
+                                {
+                                    <div class="card-body">
+                                        @if (review.Decision.HasValue)
+                                        {
+                                            <div class="mb-3">
+                                                <strong>القرار:</strong>
+                                                <span class="badge @GetDecisionBadgeClass(review.Decision.Value) ms-2">
+                                                    @GetDecisionDisplayName(review.Decision.Value)
+                                                </span>
+                                            </div>
+                                        }
+                                        @if (review.Score.HasValue)
+                                        {
+                                            <div class="mb-3">
+                                                <strong>التقييم:</strong>
+                                                <span class="badge bg-info ms-2">@review.Score.Value/10</span>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(review.CommentsToAuthor))
+                                        {
+                                            <div class="mb-3">
+                                                <strong>تعليقات للمؤلف:</strong>
+                                                <div class="mt-2 p-3 bg-light rounded">
+                                                    @review.CommentsToAuthor
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(review.CommentsToTrackManager) && Model.IsTrackManager)
+                                        {
+                                            <div class="mb-3">
+                                                <strong>تعليقات لمدير المسار:</strong>
+                                                <div class="mt-2 p-3 bg-warning bg-opacity-10 rounded">
+                                                    @review.CommentsToTrackManager
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Status History -->
+    @if (Model.StatusHistory?.Any() == true)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>تاريخ الحالات</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            @foreach (var history in Model.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-primary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">
+                                            تغيير من "@history.FromStatusDisplayName" إلى "@history.ToStatusDisplayName"
+                                        </h6>
+                                        <p class="timeline-text">
+                                            بواسطة: @history.ChangedByName<br>
+                                            التاريخ: @history.ChangedAt.ToString("yyyy/MM/dd HH:mm")
+                                            @if (!string.IsNullOrEmpty(history.Notes))
+                                            {
+                                                <br>ملاحظات: @history.Notes
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Notes -->
+    @if (!string.IsNullOrEmpty(Model.Research.Notes))
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>ملاحظات إضافية</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>@Model.Research.Notes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -22px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+        
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+        
+        .timeline-title {
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        
+        .timeline-text {
+            margin-bottom: 0;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
+}
+
+@functions {
+    private string GetResearchTypeDisplayName(ResearchManagement.Domain.Enums.ResearchType type)
+    {
+        return type switch
+        {
+            ResearchManagement.Domain.Enums.ResearchType.FullPaper => "بحث كامل",
+            ResearchManagement.Domain.Enums.ResearchType.ShortPaper => "بحث قصير",
+            ResearchManagement.Domain.Enums.ResearchType.Poster => "ملصق علمي",
+            ResearchManagement.Domain.Enums.ResearchType.Workshop => "ورشة عمل",
+            _ => type.ToString()
+        };
+    }
+
+    private string GetLanguageDisplayName(ResearchManagement.Domain.Enums.ResearchLanguage language)
+    {
+        return language switch
+        {
+            ResearchManagement.Domain.Enums.ResearchLanguage.Arabic => "العربية",
+            ResearchManagement.Domain.Enums.ResearchLanguage.English => "الإنجليزية",
+            ResearchManagement.Domain.Enums.ResearchLanguage.Both => "ثنائي اللغة",
+            _ => language.ToString()
+        };
+    }
+
+    private string GetFileTypeDisplayName(ResearchManagement.Domain.Enums.FileType fileType)
+    {
+        return fileType switch
+        {
+            ResearchManagement.Domain.Enums.FileType.ResearchPaper => "ورقة البحث",
+            ResearchManagement.Domain.Enums.FileType.Presentation => "عرض تقديمي",
+            ResearchManagement.Domain.Enums.FileType.Dataset => "مجموعة بيانات",
+            ResearchManagement.Domain.Enums.FileType.SourceCode => "كود مصدري",
+            ResearchManagement.Domain.Enums.FileType.Supplementary => "ملف مكمل",
+            ResearchManagement.Domain.Enums.FileType.ReviewForm => "نموذج مراجعة",
+            _ => fileType.ToString()
+        };
+    }
+
+    private string GetDecisionDisplayName(ResearchManagement.Domain.Enums.ReviewDecision decision)
+    {
+        return decision switch
+        {
+            ResearchManagement.Domain.Enums.ReviewDecision.Accept => "قبول",
+            ResearchManagement.Domain.Enums.ReviewDecision.Reject => "رفض",
+            ResearchManagement.Domain.Enums.ReviewDecision.MinorRevision => "تعديل طفيف",
+            ResearchManagement.Domain.Enums.ReviewDecision.MajorRevision => "تعديل جوهري",
+            _ => decision.ToString()
+        };
+    }
+
+    private string GetDecisionBadgeClass(ResearchManagement.Domain.Enums.ReviewDecision decision)
+    {
+        return decision switch
+        {
+            ResearchManagement.Domain.Enums.ReviewDecision.Accept => "bg-success",
+            ResearchManagement.Domain.Enums.ReviewDecision.Reject => "bg-danger",
+            ResearchManagement.Domain.Enums.ReviewDecision.MinorRevision => "bg-warning",
+            ResearchManagement.Domain.Enums.ReviewDecision.MajorRevision => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}

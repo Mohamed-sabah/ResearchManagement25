@@ -1,0 +1,511 @@
+@model ResearchManagement.Web.Models.ViewModels.Research.ResearchListViewModel
+@{
+    ViewData["Title"] = "إدارة البحوث";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-file-alt me-2 text-primary"></i>إدارة البحوث</h2>
+            <p class="text-muted">إدارة وتتبع البحوث العلمية المقدمة</p>
+        </div>
+        <div class="col-md-4 text-end">
+            @if (Model.CanCreateResearch)
+            {
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>تقديم بحث جديد
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    @if (Model.Researches.Items.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-alt fa-2x mb-2"></i>
+                        <h4 class="mb-0">@Model.Researches.TotalCount</h4>
+                        <small>إجمالي البحوث</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h4 class="mb-0">@Model.Researches.Items.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Accepted)</h4>
+                        <small>مقبولة</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h4 class="mb-0">@Model.Researches.Items.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.UnderReview || r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted)</h4>
+                        <small>قيد المراجعة</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-danger text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-times-circle fa-2x mb-2"></i>
+                        <h4 class="mb-0">@Model.Researches.Items.Count(r => r.Status == ResearchManagement.Domain.Enums.ResearchStatus.Rejected)</h4>
+                        <small>مرفوضة</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>البحث والفلترة
+                        <button class="btn btn-sm btn-outline-secondary float-end" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </h6>
+                </div>
+                <div class="collapse show" id="filterCollapse">
+                    <div class="card-body">
+                        <form asp-action="Index" method="get" id="filterForm">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">البحث في النص</label>
+                                    <input type="text" class="form-control" name="SearchTerm" value="@Model.Filter.SearchTerm" placeholder="ابحث في العنوان أو الملخص...">
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">الحالة</label>
+                                    <select class="form-select" name="Status" asp-items="Model.StatusOptions">
+                                        <option value="">جميع الحالات</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">المسار</label>
+                                    <select class="form-select" name="Track" asp-items="Model.TrackOptions">
+                                        <option value="">جميع المسارات</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">من تاريخ</label>
+                                    <input type="date" class="form-control" name="FromDate" value="@Model.Filter.FromDate?.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">إلى تاريخ</label>
+                                    <input type="date" class="form-control" name="ToDate" value="@Model.Filter.ToDate?.ToString("yyyy-MM-dd")">
+                                </div>
+                                <div class="col-md-1 mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                            <i class="fas fa-times me-1"></i>مسح الفلاتر
+                                        </button>
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="SortBy" value="SubmissionDate" id="sortDate" @(Model.Filter.SortBy == "SubmissionDate" ? "checked" : "")>
+                                            <label class="btn btn-outline-info btn-sm" for="sortDate">تاريخ التقديم</label>
+                                            
+                                            <input type="radio" class="btn-check" name="SortBy" value="Title" id="sortTitle" @(Model.Filter.SortBy == "Title" ? "checked" : "")>
+                                            <label class="btn btn-outline-info btn-sm" for="sortTitle">العنوان</label>
+                                            
+                                            <input type="radio" class="btn-check" name="SortBy" value="Status" id="sortStatus" @(Model.Filter.SortBy == "Status" ? "checked" : "")>
+                                            <label class="btn btn-outline-info btn-sm" for="sortStatus">الحالة</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleView" data-view="table">
+                                            <i class="fas fa-table me-1"></i>عرض جدول
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleView" data-view="cards">
+                                            <i class="fas fa-th-large me-1"></i>عرض بطاقات
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="row">
+        <div class="col-12">
+            @if (Model.Researches.Items.Any())
+            {
+                <!-- Table View -->
+                <div id="tableView" class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">قائمة البحوث (@Model.Researches.TotalCount)</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted">عرض @Model.Researches.Items.Count من @Model.Researches.TotalCount</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="40%">البحث</th>
+                                        <th width="15%">المسار</th>
+                                        <th width="15%">الحالة</th>
+                                        <th width="12%">تاريخ التقديم</th>
+                                        <th width="8%">المراجعات</th>
+                                        <th width="10%">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var research in Model.Researches.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        <a asp-action="Details" asp-route-id="@research.Id" class="text-decoration-none">
+                                                            @research.Title
+                                                        </a>
+                                                    </h6>
+                                                    @if (!string.IsNullOrEmpty(research.TitleEn))
+                                                    {
+                                                        <small class="text-muted d-block">@research.TitleEn</small>
+                                                    }
+                                                    @if (research.Authors?.Any() == true)
+                                                    {
+                                                        <small class="text-info">
+                                                            <i class="fas fa-users me-1"></i>
+                                                            @string.Join(", ", research.Authors.Take(2).Select(a => $"{a.FirstName} {a.LastName}"))
+                                                            @if (research.Authors.Count() > 2)
+                                                            {
+                                                                <span> وآخرون</span>
+                                                            }
+                                                        </small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@GetTrackDisplayName(research.Track)</span>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var statusInfo = GetStatusInfo(research.Status);
+                                                }
+                                                <span class="badge bg-@statusInfo.Color">@statusInfo.Name</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">@research.SubmissionDate.ToString("yyyy/MM/dd")</span>
+                                                <br><small class="text-muted">@research.SubmissionDate.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                @if (research.Reviews?.Any() == true)
+                                                {
+                                                    <span class="badge bg-secondary">@research.Reviews.Count()</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@research.Id" class="btn btn-outline-primary btn-sm" title="عرض التفاصيل">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    @if (CanEditResearch(research, Model.CurrentUserId, Model.CurrentUserRole))
+                                                    {
+                                                        <a asp-action="Edit" asp-route-id="@research.Id" class="btn btn-outline-warning btn-sm" title="تعديل">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    }
+                                                    @if (research.Files?.Any() == true)
+                                                    {
+                                                        <div class="btn-group">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" title="الملفات">
+                                                                <i class="fas fa-file"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                @foreach (var file in research.Files.Where(f => f.IsActive))
+                                                                {
+                                                                    <li>
+                                                                        <a class="dropdown-item" asp-action="DownloadFile" asp-route-fileId="@file.Id">
+                                                                            <i class="fas fa-download me-2"></i>@file.OriginalFileName
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards View -->
+                <div id="cardsView" style="display: none;">
+                    <div class="row">
+                        @foreach (var research in Model.Researches.Items)
+                        {
+                            <div class="col-lg-6 col-xl-4 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-header d-flex justify-content-between align-items-start">
+                                        <span class="badge bg-info">@GetTrackDisplayName(research.Track)</span>
+                                        @{
+                                            var statusInfo = GetStatusInfo(research.Status);
+                                        }
+                                        <span class="badge bg-@statusInfo.Color">@statusInfo.Name</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <a asp-action="Details" asp-route-id="@research.Id" class="text-decoration-none">
+                                                @research.Title
+                                            </a>
+                                        </h6>
+                                        @if (!string.IsNullOrEmpty(research.TitleEn))
+                                        {
+                                            <p class="card-text"><small class="text-muted">@research.TitleEn</small></p>
+                                        }
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                @if (research.AbstractAr.Length > 100)
+                                                {
+                                                    @research.AbstractAr.Substring(0, 100)...
+                                                }
+                                                else
+                                                {
+                                                    @research.AbstractAr
+                                                }
+                                            </small>
+                                        </p>
+                                        @if (research.Authors?.Any() == true)
+                                        {
+                                            <p class="card-text">
+                                                <small class="text-info">
+                                                    <i class="fas fa-users me-1"></i>
+                                                    @string.Join(", ", research.Authors.Take(2).Select(a => $"{a.FirstName} {a.LastName}"))
+                                                    @if (research.Authors.Count() > 2)
+                                                    {
+                                                        <span> وآخرون</span>
+                                                    }
+                                                </small>
+                                            </p>
+                                        }
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                @research.SubmissionDate.ToString("yyyy/MM/dd")
+                                            </small>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Details" asp-route-id="@research.Id" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if (CanEditResearch(research, Model.CurrentUserId, Model.CurrentUserRole))
+                                                {
+                                                    <a asp-action="Edit" asp-route-id="@research.Id" class="btn btn-outline-warning btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.Researches.TotalPages > 1)
+                {
+                    <nav aria-label="صفحات البحوث" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.Researches.HasPreviousPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Researches.Page - 1)" asp-all-route-data="GetRouteData()">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+
+                            @for (int i = Math.Max(1, Model.Researches.Page - 2); i <= Math.Min(Model.Researches.TotalPages, Model.Researches.Page + 2); i++)
+                            {
+                                <li class="page-item @(i == Model.Researches.Page ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-all-route-data="GetRouteData()">@i</a>
+                                </li>
+                            }
+
+                            @if (Model.Researches.HasNextPage)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Researches.Page + 1)" asp-all-route-data="GetRouteData()">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">لا توجد بحوث</h4>
+                        <p class="text-muted">لم يتم العثور على أي بحوث تطابق معايير البحث المحددة.</p>
+                        @if (Model.CanCreateResearch)
+                        {
+                            <a asp-action="Create" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>تقديم بحث جديد
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle between table and cards view
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButtons = document.querySelectorAll('#toggleView');
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const view = this.getAttribute('data-view');
+                    
+                    if (view === 'cards') {
+                        tableView.style.display = 'none';
+                        cardsView.style.display = 'block';
+                        this.innerHTML = '<i class="fas fa-table me-1"></i>عرض جدول';
+                        this.setAttribute('data-view', 'table');
+                    } else {
+                        tableView.style.display = 'block';
+                        cardsView.style.display = 'none';
+                        this.innerHTML = '<i class="fas fa-th-large me-1"></i>عرض بطاقات';
+                        this.setAttribute('data-view', 'cards');
+                    }
+                });
+            });
+
+            // Auto-submit form on sort change
+            document.querySelectorAll('input[name="SortBy"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('filterForm').submit();
+                });
+            });
+        });
+
+        function clearFilters() {
+            const form = document.getElementById('filterForm');
+            form.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+                input.value = '';
+            });
+            form.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = radio.value === 'SubmissionDate';
+            });
+            form.submit();
+        }
+    </script>
+}
+
+@functions {
+    private string GetTrackDisplayName(ResearchManagement.Domain.Enums.ResearchTrack track)
+    {
+        return track switch
+        {
+            ResearchManagement.Domain.Enums.ResearchTrack.ComputerScience => "علوم الحاسوب",
+            ResearchManagement.Domain.Enums.ResearchTrack.InformationSystems => "نظم المعلومات",
+            ResearchManagement.Domain.Enums.ResearchTrack.SoftwareEngineering => "هندسة البرمجيات",
+            ResearchManagement.Domain.Enums.ResearchTrack.ArtificialIntelligence => "الذكاء الاصطناعي",
+            ResearchManagement.Domain.Enums.ResearchTrack.DataScience => "علوم البيانات",
+            ResearchManagement.Domain.Enums.ResearchTrack.Cybersecurity => "الأمن السيبراني",
+            ResearchManagement.Domain.Enums.ResearchTrack.NetworkSystems => "أنظمة الشبكات",
+            ResearchManagement.Domain.Enums.ResearchTrack.HumanComputerInteraction => "التفاعل بين الإنسان والحاسوب",
+            _ => track.ToString()
+        };
+    }
+
+    private (string Name, string Color) GetStatusInfo(ResearchManagement.Domain.Enums.ResearchStatus status)
+    {
+        return status switch
+        {
+            ResearchManagement.Domain.Enums.ResearchStatus.Submitted => ("مُقدم", "primary"),
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderReview => ("قيد المراجعة", "warning"),
+            ResearchManagement.Domain.Enums.ResearchStatus.Accepted => ("مقبول", "success"),
+            ResearchManagement.Domain.Enums.ResearchStatus.Rejected => ("مرفوض", "danger"),
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresRevision => ("يتطلب تعديل", "info"),
+            ResearchManagement.Domain.Enums.ResearchStatus.Published => ("منشور", "success"),
+            _ => ("غير محدد", "secondary")
+        };
+    }
+
+    private bool CanEditResearch(ResearchManagement.Application.DTOs.ResearchDto research, string userId, ResearchManagement.Domain.Enums.UserRole userRole)
+    {
+        if (userRole == ResearchManagement.Domain.Enums.UserRole.Admin)
+            return true;
+
+        if (research.SubmittedById == userId && 
+            (research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted || 
+             research.Status == ResearchManagement.Domain.Enums.ResearchStatus.RequiresRevision))
+            return true;
+
+        return false;
+    }
+
+    private Dictionary<string, string> GetRouteData()
+    {
+        var routeData = new Dictionary<string, string>();
+        
+        if (!string.IsNullOrEmpty(Model.Filter.SearchTerm))
+            routeData["SearchTerm"] = Model.Filter.SearchTerm;
+        
+        if (Model.Filter.Status.HasValue)
+            routeData["Status"] = ((int)Model.Filter.Status.Value).ToString();
+        
+        if (Model.Filter.Track.HasValue)
+            routeData["Track"] = ((int)Model.Filter.Track.Value).ToString();
+        
+        if (Model.Filter.FromDate.HasValue)
+            routeData["FromDate"] = Model.Filter.FromDate.Value.ToString("yyyy-MM-dd");
+        
+        if (Model.Filter.ToDate.HasValue)
+            routeData["ToDate"] = Model.Filter.ToDate.Value.ToString("yyyy-MM-dd");
+        
+        routeData["SortBy"] = Model.Filter.SortBy;
+        routeData["SortDescending"] = Model.Filter.SortDescending.ToString();
+        
+        return routeData;
+    }
+}
