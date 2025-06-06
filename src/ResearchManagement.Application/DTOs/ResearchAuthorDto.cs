@@ -19,6 +19,7 @@ namespace ResearchManagement.Application.DTOs
         public string? OrcidId { get; set; }
         public int Order { get; set; }
         public bool IsCorresponding { get; set; }
+        public string? UserId { get; set; }
         public string FullName => $"{FirstName} {LastName}";
         public string? FullNameEn => !string.IsNullOrEmpty(FirstNameEn) && !string.IsNullOrEmpty(LastNameEn)
             ? $"{FirstNameEn} {LastNameEn}" : null;

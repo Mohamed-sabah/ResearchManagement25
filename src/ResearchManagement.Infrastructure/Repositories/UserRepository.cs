@@ -72,5 +72,12 @@ namespace ResearchManagement.Infrastructure.Repositories
                 user.IsActive = false;
             }
         }
+
+        public async Task<int?> GetTrackManagerIdByUserIdAsync(string userId)
+        {
+            var trackManager = await _context.TrackManagers
+                .FirstOrDefaultAsync(tm => tm.UserId == userId && tm.IsActive);
+            return trackManager?.Id;
+        }
     }
 }

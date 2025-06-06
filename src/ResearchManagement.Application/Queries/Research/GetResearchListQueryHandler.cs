@@ -10,15 +10,18 @@ namespace ResearchManagement.Application.Queries.Research
     public class GetResearchListQueryHandler : IRequestHandler<GetResearchListQuery, PagedResult<ResearchDto>>
     {
         private readonly IResearchRepository _researchRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<GetResearchListQueryHandler> _logger;
 
         public GetResearchListQueryHandler(
             IResearchRepository researchRepository,
+            IUserRepository userRepository,
             IMapper mapper,
             ILogger<GetResearchListQueryHandler> logger)
         {
             _researchRepository = researchRepository;
+            _userRepository = userRepository;
             _mapper = mapper;
             _logger = logger;
         }
@@ -104,8 +107,9 @@ namespace ResearchManagement.Application.Queries.Research
 
                 case UserRole.TrackManager:
                     // مدير المسار يرى بحوث مساره فقط
+                    var trackManagerId = await _userRepository.GetTrackManagerIdByUserIdAsync(userId);
                     return researches.Where(r => 
-                        r.AssignedTrackManagerId == userId).ToList();
+                        r.AssignedTrackManagerId == trackManagerId).ToList();
 
                 case UserRole.SystemAdmin:
                     // الأدمن يرى كل شيء

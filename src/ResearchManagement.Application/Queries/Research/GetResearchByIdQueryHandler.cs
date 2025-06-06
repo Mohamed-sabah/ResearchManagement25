@@ -10,15 +10,18 @@ namespace ResearchManagement.Application.Queries.Research
     public class GetResearchByIdQueryHandler : IRequestHandler<GetResearchByIdQuery, ResearchDto?>
     {
         private readonly IResearchRepository _researchRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<GetResearchByIdQueryHandler> _logger;
 
         public GetResearchByIdQueryHandler(
             IResearchRepository researchRepository,
+            IUserRepository userRepository,
             IMapper mapper,
             ILogger<GetResearchByIdQueryHandler> logger)
         {
             _researchRepository = researchRepository;
+            _userRepository = userRepository;
             _mapper = mapper;
             _logger = logger;
         }
@@ -73,7 +76,7 @@ namespace ResearchManagement.Application.Queries.Research
                 return true;
 
             // الأدمن يمكنه الوصول لكل شيء
-            var user = await _researchRepository.GetUserByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user?.Role == UserRole.SystemAdmin)
                 return true;
 

@@ -27,6 +27,7 @@ namespace ResearchManagement.Application.DTOs
         public string? RejectionReason { get; set; }
         public string SubmittedById { get; set; } = string.Empty;
         public string SubmittedByName { get; set; } = string.Empty;
+        public int? AssignedTrackManagerId { get; set; }
         public List<ResearchAuthorDto> Authors { get; set; } = new();
         public List<ResearchFileDto> Files { get; set; } = new();
         public List<ReviewDto> Reviews { get; set; } = new();

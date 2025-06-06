@@ -556,18 +556,18 @@ namespace ResearchManagement.Infrastructure.Repositories
         {
             try
             {
-                return await _dbSet
-                    .Include(r => r.SubmittedBy)
-                    .Include(r => r.Reviews)
-                        .ThenInclude(rv => rv.Reviewer)
-                    .Include(r => r.Reviews)
-                        .ThenInclude(rv => rv.ReviewFiles)
-                    .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
+        return await _dbSet
+            .Include(r => r.SubmittedBy)
+            .Include(r => r.Reviews)
+                .ThenInclude(rv => rv.Reviewer)
+            .Include(r => r.Reviews)
+                .ThenInclude(rv => rv.ReviewFiles)
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "خطأ في استرجاع البحث {ResearchId} مع المراجعات", id);
-                throw new InvalidOperationException($"خطأ في استرجاع البحث مع المراجعات: {ex.Message}", ex);
+        _logger.LogError(ex, "خطأ في استرجاع البحث {ResearchId} مع المراجعات", id);
+        throw new InvalidOperationException($"خطأ في استرجاع البحث مع المراجعات: {ex.Message}", ex);
             }
         }
 
@@ -596,6 +596,8 @@ namespace ResearchManagement.Infrastructure.Repositories
                 throw new InvalidOperationException($"خطأ في استرجاع البحث مع جميع التفاصيل: {ex.Message}", ex);
             }
         }
+
+        #endregion
 
         #region Get by User
 
@@ -880,7 +882,7 @@ namespace ResearchManagement.Infrastructure.Repositories
 
         private IQueryable<Research> ApplySearchCriteria(IQueryable<Research> query, Dictionary<string, object> searchCriteria)
         {
-                if (searchCriteria == null || !searchCriteria.Any())
+    if (searchCriteria == null || !searchCriteria.Any())
         return query;
 
     foreach (var criteria in searchCriteria)
@@ -928,7 +930,7 @@ namespace ResearchManagement.Infrastructure.Repositories
         }
             }
 
-                return query;
+    return query;
         }
 
         private IQueryable<Research> ApplySorting(IQueryable<Research> query, string sortBy, bool sortDescending)
