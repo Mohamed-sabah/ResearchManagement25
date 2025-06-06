@@ -18,11 +18,7 @@ namespace ResearchManagement.Infrastructure.Data
                 UserManager<User> userManager,
                 RoleManager<IdentityRole> roleManager)
             {
-                // تطبيق التحديثات المعلقة
-                if ((await context.Database.GetPendingMigrationsAsync()).Any())
-                {
-                    await context.Database.MigrateAsync();
-                }
+                // تم إنشاء قاعدة البيانات مسبقاً
 
                 // إنشاء الأدوار
                 await SeedRolesAsync(roleManager);

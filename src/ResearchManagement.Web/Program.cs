@@ -24,7 +24,7 @@ builder.Host.UseSerilog((context, configuration) =>
 
 // ≈⁄œ«œ DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ≈⁄œ«œ Identity „⁄  Õ”Ì‰«  «·√„«‰
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -80,16 +80,17 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 
 
-// ≈÷«›… Â–Â «·Œœ„« 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
+//  ”ÃÌ· Repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateResearchCommand).Assembly));
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+//  ”ÃÌ· Services
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 
 
@@ -210,15 +211,11 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<User>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-        //  ÿ»Ìﬁ Migrations ≈–« ·“„ «·√„—
-        if (context.Database.GetPendingMigrations().Any())
-        {
-            logger.LogInformation(" ÿ»Ìﬁ Migrations «·„⁄·ﬁ…...");
-            await context.Database.MigrateAsync();
-        }
+        // ≈‰‘«¡ ﬁ«⁄œ… «·»Ì«‰«  ≈–« ·„  ﬂ‰ „ÊÃÊœ…
+        await context.Database.EnsureCreatedAsync();
 
         //  ÿ»Ìﬁ Database Seeding
-        await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
+        // await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
 
         logger.LogInformation(" „  ‘€Ì· «· ÿ»Ìﬁ »‰Ã«Õ");
     }

@@ -68,7 +68,7 @@ namespace ResearchManagement.Application.Queries.Research
                 return true;
 
             // مدير المسار يمكنه الوصول
-            if (research.AssignedTrackManager?.UserId == userId)
+            if (int.TryParse(userId, out int userIdInt) && research.AssignedTrackManagerId == userIdInt)
                 return true;
 
             // المراجعون المعينون يمكنهم الوصول
