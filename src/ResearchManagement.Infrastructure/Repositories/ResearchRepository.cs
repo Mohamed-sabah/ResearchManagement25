@@ -833,6 +833,137 @@ public async Task<IEnumerable<Research>> GetRecentSubmissionsAsync(int count = 1
     }
     catch (Exception ex)
     {
-        //_logger.
+        _logger.LogError(ex, "خطأ في استرجاع البحوث الحديثة");
+        throw new InvalidOperationException($"خطأ في استرجاع البحوث الحديثة: {ex.Message}", ex);
+    }
+}
+
+public async Task<(IEnumerable<Research> researches, int totalCount)> GetPagedAsync(
+    Dictionary<string, object> searchCriteria,
+    int page,
+    int pageSize,
+    string sortBy,
+    bool sortDescending)
+{
+    try
+    {
+        _logger.LogInformation("استرجاع البحوث مع التصفح - الصفحة: {Page}, الحجم: {PageSize}", page, pageSize);
+
+        var query = _dbSet
+            .Where(r => !r.IsDeleted)
+            .Include(r => r.SubmittedBy)
+            .Include(r => r.Authors.OrderBy(a => a.Order))
+            .Include(r => r.Reviews)
+                .ThenInclude(rv => rv.Reviewer)
+            .Include(r => r.StatusHistory)
+            .Include(r => r.AssignedTrackManager)
+                .ThenInclude(tm => tm!.User)
+            .AsQueryable();
+
+        // تطبيق معايير البحث
+        query = ApplySearchCriteria(query, searchCriteria);
+
+        // حساب العدد الإجمالي
+        var totalCount = await query.CountAsync();
+
+        // تطبيق الترتيب
+        query = ApplySorting(query, sortBy, sortDescending);
+
+        // تطبيق التصفح
+        var researches = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        _logger.LogInformation("تم استرجاع {Count} بحث من أصل {Total}", researches.Count, totalCount);
+
+        return (researches, totalCount);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "خطأ في استرجاع البحوث مع التصفح");
+        throw new InvalidOperationException($"خطأ في استرجاع البحوث مع التصفح: {ex.Message}", ex);
+    }
+}
+
+private IQueryable<Research> ApplySearchCriteria(IQueryable<Research> query, Dictionary<string, object> searchCriteria)
+{
+    if (searchCriteria == null || !searchCriteria.Any())
+        return query;
+
+    foreach (var criteria in searchCriteria)
+    {
+        switch (criteria.Key.ToLower())
+        {
+            case "searchterm":
+                if (criteria.Value is string searchTerm && !string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    query = query.Where(r => 
+                        r.Title.Contains(searchTerm) ||
+                        r.Abstract.Contains(searchTerm) ||
+                        r.Keywords.Contains(searchTerm) ||
+                        r.Authors.Any(a => a.FirstName.Contains(searchTerm) || a.LastName.Contains(searchTerm)));
+                }
+                break;
+
+            case "status":
+                if (criteria.Value is ResearchStatus status)
+                {
+                    query = query.Where(r => r.Status == status);
+                }
+                break;
+
+            case "track":
+                if (criteria.Value is ResearchTrack track)
+                {
+                    query = query.Where(r => r.Track == track);
+                }
+                break;
+
+            case "fromdate":
+                if (criteria.Value is DateTime fromDate)
+                {
+                    query = query.Where(r => r.SubmissionDate >= fromDate);
+                }
+                break;
+
+            case "todate":
+                if (criteria.Value is DateTime toDate)
+                {
+                    query = query.Where(r => r.SubmissionDate <= toDate);
+                }
+                break;
+        }
+    }
+
+    return query;
+}
+
+private IQueryable<Research> ApplySorting(IQueryable<Research> query, string sortBy, bool sortDescending)
+{
+    switch (sortBy?.ToLower())
+    {
+        case "title":
+            return sortDescending ? query.OrderByDescending(r => r.Title) : query.OrderBy(r => r.Title);
+        
+        case "status":
+            return sortDescending ? query.OrderByDescending(r => r.Status) : query.OrderBy(r => r.Status);
+        
+        case "track":
+            return sortDescending ? query.OrderByDescending(r => r.Track) : query.OrderBy(r => r.Track);
+        
+        case "submittedby":
+            return sortDescending ? 
+                query.OrderByDescending(r => r.SubmittedBy.FirstName).ThenByDescending(r => r.SubmittedBy.LastName) : 
+                query.OrderBy(r => r.SubmittedBy.FirstName).ThenBy(r => r.SubmittedBy.LastName);
+        
+        case "submissiondate":
+        default:
+            return sortDescending ? query.OrderByDescending(r => r.SubmissionDate) : query.OrderBy(r => r.SubmissionDate);
+    }
+}
+
+#endregion
+
     }
 }

@@ -53,5 +53,12 @@ namespace ResearchManagement.Application.Interfaces
 
         Task<IEnumerable<Research>> GetDeletedResearchAsync();
         Task<IEnumerable<Research>> GetArchivedResearchAsync();
+
+        Task<(IEnumerable<Research> researches, int totalCount)> GetPagedAsync(
+            Dictionary<string, object> searchCriteria,
+            int page,
+            int pageSize,
+            string sortBy,
+            bool sortDescending);
     }
 }
