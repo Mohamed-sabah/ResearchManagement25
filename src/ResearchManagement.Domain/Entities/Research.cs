@@ -10,6 +10,7 @@ namespace ResearchManagement.Domain.Entities
 {
     public class Research : BaseEntity
     {
+        public int Id { get; set; }
         [Required]
         [StringLength(500)]
         public string Title { get; set; } = string.Empty;

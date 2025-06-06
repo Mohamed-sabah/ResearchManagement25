@@ -52,7 +52,7 @@ namespace ResearchManagement.Infrastructure.Data
             // ========================================
             builder.Entity<Research>(entity =>
             {
-                entity.HasKey(r => r.Id);
+                entity.HasKey(r => r.Id); entity.Property(e => e.Id).ValueGeneratedOnAdd(); 
                 entity.Property(r => r.Title).IsRequired().HasMaxLength(500);
                 entity.Property(r => r.TitleEn).HasMaxLength(500);
                 entity.Property(r => r.AbstractAr).IsRequired().HasMaxLength(2000);

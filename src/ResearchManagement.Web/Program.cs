@@ -10,6 +10,8 @@ using FluentValidation;
 using Serilog;
 using Microsoft.AspNetCore.RateLimiting;
 using ResearchManagement.Web.Extensions;
+using ResearchManagement.Application.Commands.Research;
+using ResearchManagement.Application.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,19 +74,42 @@ builder.Services.ConfigureApplicationCookie(options =>
 //builder.Services.AddMappingServices();
 //builder.Services.AddValidationServices();
 //builder.Services.AddConfigurationServices(builder.Configuration);
-builder.Services.AddBackgroundServices();
+//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+//builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
 
 
-//  ”ÃÌ· Repositories
-builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
 
-//  ”ÃÌ· Services
+
+// ≈÷«›… Â–Â «·Œœ„« 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateResearchCommand).Assembly));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+
+
+
+
+
+//builder.Services.AddBackgroundServices();
+
+//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+//builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
+////  ”ÃÌ· Repositories
+//builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
+//builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+//builder.Services.AddScoped<IUserRepository, UserRepository>();
+//builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
+
+////  ”ÃÌ· Services
+//builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+//builder.Services.AddScoped<IEmailService, EmailService>();
+//builder.Services.AddScoped<IFileService, FileService>();
 
 //  ”ÃÌ· MediatR
 builder.Services.AddMediatR(cfg =>

@@ -1,82 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using ResearchManagement.Application.DTOs;
 using ResearchManagement.Domain.Entities;
 using ResearchManagement.Domain.Enums;
 
 namespace ResearchManagement.Application.Interfaces
 {
-    public interface IResearchRepository
+    public interface IResearchRepository : IGenericRepository<Research>
     {
-        Task<Research?> GetByIdAsync(int id);
         Task<Research?> GetByIdWithDetailsAsync(int id);
-        Task<IEnumerable<Research>> GetAllAsync();
+        Task<Research?> GetByIdWithAuthorsAsync(int id);
+        Task<Research?> GetByIdWithFilesAsync(int id);
+        Task<Research?> GetByIdWithReviewsAsync(int id);
+        Task<Research?> GetByIdWithAllDetailsAsync(int id);
+
         Task<IEnumerable<Research>> GetByUserIdAsync(string userId);
+        Task<IEnumerable<Research>> GetByUserIdWithDetailsAsync(string userId);
+
         Task<IEnumerable<Research>> GetByTrackAsync(ResearchTrack track);
+        Task<IEnumerable<Research>> GetByTrackWithDetailsAsync(ResearchTrack track);
+
         Task<IEnumerable<Research>> GetByStatusAsync(ResearchStatus status);
+        Task<IEnumerable<Research>> GetByStatusWithDetailsAsync(ResearchStatus status);
+
         Task<IEnumerable<Research>> GetByTrackManagerAsync(int trackManagerId);
         Task<IEnumerable<Research>> GetForReviewerAsync(string reviewerId);
-        Task AddAsync(Research research);
-        Task UpdateAsync(Research research);
-        Task DeleteAsync(int id);
+
+        Task<IEnumerable<Research>> GetBySubmissionDateRangeAsync(DateTime fromDate, DateTime toDate);
+        Task<IEnumerable<Research>> GetRecentSubmissionsAsync(int count = 10);
+
         Task<int> GetCountByStatusAsync(ResearchStatus status);
         Task<int> GetCountByTrackAsync(ResearchTrack track);
-        Task<bool> ExistsAsync(int id);
-    }
+        Task<int> GetCountByUserAsync(string userId);
 
-    public interface IReviewRepository
-    {
-        Task<Review?> GetByIdAsync(int id);
-        Task<Review?> GetByIdWithDetailsAsync(int id);
-        Task<IEnumerable<Review>> GetByResearchIdAsync(int researchId);
-        Task<IEnumerable<Review>> GetByReviewerIdAsync(string reviewerId);
-        Task<IEnumerable<Review>> GetPendingReviewsAsync(string reviewerId);
-        Task AddAsync(Review review);
-        Task UpdateAsync(Review review);
-        Task DeleteAsync(int id);
+        Task<IEnumerable<Research>> SearchAsync(string searchTerm);
+        Task<IEnumerable<Research>> SearchByTitleAsync(string title);
+        Task<IEnumerable<Research>> SearchByKeywordsAsync(string keywords);
+        Task<IEnumerable<Research>> SearchByAuthorAsync(string authorName);
+
+        Task<bool> HasUserSubmittedResearchAsync(string userId);
+        Task<bool> CanUserSubmitResearchAsync(string userId);
+
+        Task<IEnumerable<Research>> GetPendingReviewAssignmentAsync();
+        Task<IEnumerable<Research>> GetResearchWithOverdueReviewsAsync();
+
+        Task<decimal> GetAverageReviewScoreAsync(int researchId);
         Task<int> GetCompletedReviewsCountAsync(int researchId);
-        Task<decimal> GetAverageScoreAsync(int researchId);
-    }
 
-    public interface IUserRepository
-    {
-        Task<User?> GetByIdAsync(string id);
-        Task<User?> GetByEmailAsync(string email);
-        Task<IEnumerable<User>> GetByRoleAsync(UserRole role);
-        Task<IEnumerable<User>> GetReviewersByTrackAsync(ResearchTrack track);
-        Task AddAsync(User user);
-        Task UpdateAsync(User user);
-        Task DeleteAsync(string id);
-    }
+        Task SoftDeleteAsync(int id, string deletedBy);
+        Task RestoreAsync(int id, string restoredBy);
 
-    public interface IUnitOfWork
-    {
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-        Task BeginTransactionAsync();
-        Task CommitTransactionAsync();
-        Task RollbackTransactionAsync();
-    }
-
-    public interface IEmailService
-    {
-        Task SendResearchSubmissionConfirmationAsync(int researchId);
-        Task SendResearchStatusUpdateAsync(int researchId, ResearchStatus oldStatus, ResearchStatus newStatus);
-        Task SendReviewAssignmentAsync(int reviewId);
-        Task SendReviewCompletedNotificationAsync(int reviewId);
-        Task SendDeadlineReminderAsync(string userId, string subject, string message);
-        Task SendBulkNotificationAsync(IEnumerable<string> userIds, string subject, string message);
-    }
-
-    public interface IFileService
-    {
-        Task<string> UploadFileAsync(byte[] fileContent, string fileName, string contentType);
-        Task<byte[]> DownloadFileAsync(string filePath);
-        Task DeleteFileAsync(string filePath);
-        Task<bool> FileExistsAsync(string filePath);
-        string GetFileUrl(string filePath);
+        Task<IEnumerable<Research>> GetDeletedResearchAsync();
+        Task<IEnumerable<Research>> GetArchivedResearchAsync();
     }
 }
-
-
