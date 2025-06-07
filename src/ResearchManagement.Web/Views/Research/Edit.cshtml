@@ -1,0 +1,453 @@
+@model ResearchManagement.Web.Models.ViewModels.Research.CreateResearchViewModel
+@{
+    ViewData["Title"] = "تعديل البحث";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-edit me-2 text-warning"></i>تعديل البحث</h2>
+            <p class="text-muted">تعديل معلومات البحث المقدم</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Details" asp-route-id="@Model.ResearchId" class="btn btn-outline-primary">
+                <i class="fas fa-eye me-2"></i>عرض التفاصيل
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert for edit mode -->
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>تنبيه:</strong> يمكن تعديل البحث فقط في حالة "مُقدم" أو "يتطلب تعديل".
+    </div>
+
+    <!-- Form -->
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editResearchForm">
+        <input type="hidden" asp-for="ResearchId" />
+        <input type="hidden" asp-for="CurrentUserId" />
+        
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Basic Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>معلومات البحث الأساسية</h5>
+                    </div>
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">عنوان البحث (بالعربية) *</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TitleEn" class="form-label">عنوان البحث (بالإنجليزية)</label>
+                            <input asp-for="TitleEn" class="form-control" />
+                            <span asp-validation-for="TitleEn" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ResearchType" class="form-label">نوع البحث *</label>
+                                <select asp-for="ResearchType" asp-items="Model.ResearchTypeOptions" class="form-select">
+                                    <option value="">اختر نوع البحث</option>
+                                </select>
+                                <span asp-validation-for="ResearchType" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Language" class="form-label">لغة البحث *</label>
+                                <select asp-for="Language" asp-items="Model.LanguageOptions" class="form-select">
+                                    <option value="">اختر لغة البحث</option>
+                                </select>
+                                <span asp-validation-for="Language" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Track" class="form-label">المسار *</label>
+                                <select asp-for="Track" asp-items="Model.TrackOptions" class="form-select">
+                                    <option value="">اختر المسار</option>
+                                </select>
+                                <span asp-validation-for="Track" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AbstractAr" class="form-label">الملخص (بالعربية) *</label>
+                            <textarea asp-for="AbstractAr" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="AbstractAr" class="text-danger"></span>
+                            <div class="form-text">عدد الكلمات: <span id="abstractArCount">0</span>/300</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AbstractEn" class="form-label">الملخص (بالإنجليزية)</label>
+                            <textarea asp-for="AbstractEn" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="AbstractEn" class="text-danger"></span>
+                            <div class="form-text">Word count: <span id="abstractEnCount">0</span>/300</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Keywords" class="form-label">الكلمات المفتاحية (بالعربية)</label>
+                                <input asp-for="Keywords" class="form-control" />
+                                <span asp-validation-for="Keywords" class="text-danger"></span>
+                                <div class="form-text">افصل بين الكلمات بفاصلة</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="KeywordsEn" class="form-label">الكلمات المفتاحية (بالإنجليزية)</label>
+                                <input asp-for="KeywordsEn" class="form-control" />
+                                <span asp-validation-for="KeywordsEn" class="text-danger"></span>
+                                <div class="form-text">Separate keywords with commas</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label">ملاحظات إضافية</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authors Section -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>معلومات الباحثين</h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="addAuthor">
+                            <i class="fas fa-plus me-1"></i>إضافة باحث
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="authorsContainer">
+                            @for (int i = 0; i < Model.Authors.Count; i++)
+                            {
+                                <div class="author-item border rounded p-3 mb-3" data-index="@i">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-user me-2"></i>
+                                            @if (i == 0)
+                                            {
+                                                <span>الباحث الرئيسي</span>
+                                                <span class="badge bg-primary ms-2">مطلوب</span>
+                                            }
+                                            else
+                                            {
+                                                <span>الباحث @(i + 1)</span>
+                                            }
+                                        </h6>
+                                        @if (i > 0)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-author">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">الاسم الأول *</label>
+                                            <input asp-for="Authors[i].FirstName" class="form-control" />
+                                            <span asp-validation-for="Authors[i].FirstName" class="text-danger"></span>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">اسم العائلة *</label>
+                                            <input asp-for="Authors[i].LastName" class="form-control" />
+                                            <span asp-validation-for="Authors[i].LastName" class="text-danger"></span>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">الاسم الأول (إنجليزي)</label>
+                                            <input asp-for="Authors[i].FirstNameEn" class="form-control" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">اسم العائلة (إنجليزي)</label>
+                                            <input asp-for="Authors[i].LastNameEn" class="form-control" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">البريد الإلكتروني *</label>
+                                            <input asp-for="Authors[i].Email" type="email" class="form-control" />
+                                            <span asp-validation-for="Authors[i].Email" class="text-danger"></span>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">المؤسسة</label>
+                                            <input asp-for="Authors[i].Institution" class="form-control" />
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">الدرجة العلمية</label>
+                                            <input asp-for="Authors[i].AcademicDegree" class="form-control" />
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">رقم ORCID</label>
+                                            <input asp-for="Authors[i].OrcidId" class="form-control" />
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="form-check mt-4">
+                                                <input asp-for="Authors[i].IsCorresponding" type="checkbox" class="form-check-input" />
+                                                <label asp-for="Authors[i].IsCorresponding" class="form-check-label">الباحث المراسل</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <input asp-for="Authors[i].Order" type="hidden" />
+                                    <input asp-for="Authors[i].UserId" type="hidden" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Files Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file me-2"></i>ملفات البحث</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Current Files -->
+                        <div class="mb-3">
+                            <h6>الملفات الحالية:</h6>
+                            <div id="currentFiles">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Upload New File -->
+                        <div class="mb-3">
+                            <label for="newFiles" class="form-label">رفع ملفات جديدة</label>
+                            <input type="file" class="form-control" id="newFiles" name="Files" multiple accept=".pdf,.doc,.docx" />
+                            <div class="form-text">
+                                الصيغ المدعومة: PDF, DOC, DOCX<br>
+                                الحد الأقصى: 50 ميجابايت لكل ملف
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>الإجراءات</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>حفظ التعديلات
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.ResearchId" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>إلغاء
+                            </a>
+                            <hr>
+                            <a asp-action="Index" class="btn btn-outline-primary">
+                                <i class="fas fa-list me-2"></i>العودة للقائمة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let authorIndex = @Model.Authors.Count;
+
+        $(document).ready(function() {
+            // Word count for abstracts
+            updateWordCount($('#AbstractAr')[0], 'abstractArCount');
+            updateWordCount($('#AbstractEn')[0], 'abstractEnCount');
+
+            $('#AbstractAr').on('input', function() {
+                updateWordCount(this, 'abstractArCount');
+            });
+
+            $('#AbstractEn').on('input', function() {
+                updateWordCount(this, 'abstractEnCount');
+            });
+
+            // Load current files
+            loadCurrentFiles();
+        });
+
+        // Add new author
+        $('#addAuthor').click(function() {
+            addAuthor();
+        });
+
+        function addAuthor() {
+            const authorHtml = `
+                <div class="author-item border rounded p-3 mb-3" data-index="${authorIndex}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">
+                            <i class="fas fa-user me-2"></i>الباحث ${authorIndex + 1}
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-author">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأول *</label>
+                            <input name="Authors[${authorIndex}].FirstName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم العائلة *</label>
+                            <input name="Authors[${authorIndex}].LastName" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأول (إنجليزي)</label>
+                            <input name="Authors[${authorIndex}].FirstNameEn" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم العائلة (إنجليزي)</label>
+                            <input name="Authors[${authorIndex}].LastNameEn" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">البريد الإلكتروني *</label>
+                            <input name="Authors[${authorIndex}].Email" type="email" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">المؤسسة</label>
+                            <input name="Authors[${authorIndex}].Institution" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">الدرجة العلمية</label>
+                            <input name="Authors[${authorIndex}].AcademicDegree" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">رقم ORCID</label>
+                            <input name="Authors[${authorIndex}].OrcidId" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check mt-4">
+                                <input name="Authors[${authorIndex}].IsCorresponding" type="checkbox" class="form-check-input" />
+                                <label class="form-check-label">الباحث المراسل</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input name="Authors[${authorIndex}].Order" type="hidden" value="${authorIndex + 1}" />
+                </div>
+            `;
+
+            $('#authorsContainer').append(authorHtml);
+            authorIndex++;
+        }
+
+        // Remove author
+        $(document).on('click', '.remove-author', function() {
+            $(this).closest('.author-item').remove();
+            updateAuthorIndices();
+        });
+
+        function updateAuthorIndices() {
+            $('#authorsContainer .author-item').each(function(index) {
+                $(this).attr('data-index', index);
+                $(this).find('input, select').each(function() {
+                    const name = $(this).attr('name');
+                    if (name && name.includes('Authors[')) {
+                        $(this).attr('name', name.replace(/Authors\[\d+\]/, `Authors[${index}]`));
+                    }
+                });
+
+                $(this).find('input[name$=".Order"]').val(index + 1);
+                
+                // Update header text
+                const header = $(this).find('h6');
+                if (index === 0) {
+                    header.html('<i class="fas fa-user me-2"></i>الباحث الرئيسي <span class="badge bg-primary ms-2">مطلوب</span>');
+                } else {
+                    header.html(`<i class="fas fa-user me-2"></i>الباحث ${index + 1}`);
+                }
+            });
+            
+            authorIndex = $('#authorsContainer .author-item').length;
+        }
+
+        function updateWordCount(element, counterId) {
+            const text = $(element).val().trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            $(`#${counterId}`).text(words);
+
+            if (words > 300) {
+                $(`#${counterId}`).addClass('text-danger');
+            } else {
+                $(`#${counterId}`).removeClass('text-danger');
+            }
+        }
+
+        function loadCurrentFiles() {
+            // This would typically load from the server
+            // For now, we'll show a placeholder
+            $('#currentFiles').html(`
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    سيتم عرض الملفات الحالية هنا
+                </div>
+            `);
+        }
+
+        // Form validation
+        $('#editResearchForm').on('submit', function(e) {
+            let isValid = true;
+            
+            // Check required fields
+            $(this).find('input[required], select[required], textarea[required]').each(function() {
+                if (!$(this).val().trim()) {
+                    isValid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            // Check at least one author
+            if ($('#authorsContainer .author-item').length === 0) {
+                isValid = false;
+                alert('يجب إضافة باحث واحد على الأقل');
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                $('html, body').animate({
+                    scrollTop: $('.is-invalid').first().offset().top - 100
+                }, 500);
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .author-item {
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .author-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .is-invalid {
+            border-color: #dc3545;
+        }
+
+        .word-count-warning {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .card-header h5 {
+            color: #495057;
+        }
+
+        .btn-group-vertical .btn {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+}

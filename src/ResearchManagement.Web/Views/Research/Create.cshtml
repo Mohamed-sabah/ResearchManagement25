@@ -1,0 +1,337 @@
+﻿@model ResearchManagement.Web.Models.ViewModels.Research.CreateResearchViewModel
+@{
+    ViewData["Title"] = "تقديم بحث جديد";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-plus me-2"></i>تقديم بحث جديد</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data" id="researchForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <!-- معلومات البحث الأساسية -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>معلومات البحث الأساسية</h5>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="Title" class="form-label">عنوان البحث (بالعربية) *</label>
+                            <input asp-for="Title" class="form-control" placeholder="أدخل عنوان البحث باللغة العربية" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="TitleEn" class="form-label">عنوان البحث (بالإنجليزية)</label>
+                            <input asp-for="TitleEn" class="form-control" placeholder="Enter research title in English" />
+                            <span asp-validation-for="TitleEn" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ResearchType" class="form-label">نوع البحث *</label>
+                            <select asp-for="ResearchType" class="form-select">
+                                <option value="">اختر نوع البحث</option>
+                                <option value="1">بحث أصلي</option>
+                                <option value="2">مراجعة منهجية</option>
+                                <option value="3">دراسة حالة</option>
+                                <option value="4">بحث تجريبي</option>
+                                <option value="5">بحث نظري</option>
+                                <option value="6">بحث تطبيقي</option>
+                                <option value="7">مراجعة أدبية</option>
+                                <option value="8">بحث مقارن</option>
+                            </select>
+                            <span asp-validation-for="ResearchType" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Language" class="form-label">لغة البحث *</label>
+                            <select asp-for="Language" class="form-select">
+                                <option value="">اختر لغة البحث</option>
+                                <option value="1">العربية</option>
+                                <option value="2">الإنجليزية</option>
+                                <option value="3">ثنائية اللغة</option>
+                            </select>
+                            <span asp-validation-for="Language" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Track" class="form-label">التخصص *</label>
+                            <select asp-for="Track" class="form-select">
+                                <option value="">اختر التخصص</option>
+                                <option value="1">تقنية المعلومات</option>
+                                <option value="2">أمن المعلومات</option>
+                                <option value="3">الذكاء الاصطناعي</option>
+                                <option value="4">علوم البيانات</option>
+                                <option value="5">هندسة البرمجيات</option>
+                                <option value="6">الشبكات والاتصالات</option>
+                                <option value="7">الحوسبة السحابية</option>
+                                <option value="8">إنترنت الأشياء</option>
+                                <option value="9">الواقع المعزز والافتراضي</option>
+                                <option value="10">البلوك تشين</option>
+                                <option value="11">التعلم الآلي</option>
+                                <option value="12">معالجة اللغات الطبيعية</option>
+                                <option value="13">الحوسبة عالية الأداء</option>
+                                <option value="14">تطوير التطبيقات المحمولة</option>
+                                <option value="15">قواعد البيانات</option>
+                            </select>
+                            <span asp-validation-for="Track" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Methodology" class="form-label">المنهجية المستخدمة</label>
+                            <input asp-for="Methodology" class="form-control" placeholder="مثل: كمية، نوعية، مختلطة" />
+                            <span asp-validation-for="Methodology" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- الملخصات والكلمات المفتاحية -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3"><i class="fas fa-align-left me-2"></i>الملخصات والكلمات المفتاحية</h5>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="AbstractAr" class="form-label">الملخص (بالعربية) *</label>
+                            <textarea asp-for="AbstractAr" class="form-control" rows="5" placeholder="أدخل ملخص البحث باللغة العربية (250-300 كلمة)"></textarea>
+                            <span asp-validation-for="AbstractAr" class="text-danger"></span>
+                            <div class="form-text">عدد الكلمات: <span id="abstractArCount">0</span>/300</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="AbstractEn" class="form-label">الملخص (بالإنجليزية)</label>
+                            <textarea asp-for="AbstractEn" class="form-control" rows="5" placeholder="Enter research abstract in English (250-300 words)"></textarea>
+                            <span asp-validation-for="AbstractEn" class="text-danger"></span>
+                            <div class="form-text">Word count: <span id="abstractEnCount">0</span>/300</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Keywords" class="form-label">الكلمات المفتاحية (بالعربية)</label>
+                            <input asp-for="Keywords" class="form-control" placeholder="كلمة1، كلمة2، كلمة3..." />
+                            <span asp-validation-for="Keywords" class="text-danger"></span>
+                            <div class="form-text">افصل بين الكلمات بفاصلة (5-8 كلمات)</div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="KeywordsEn" class="form-label">الكلمات المفتاحية (بالإنجليزية)</label>
+                            <input asp-for="KeywordsEn" class="form-control" placeholder="keyword1, keyword2, keyword3..." />
+                            <span asp-validation-for="KeywordsEn" class="text-danger"></span>
+                            <div class="form-text">Separate keywords with commas (5-8 keywords)</div>
+                        </div>
+                    </div>
+
+                    <!-- معلومات الباحثين -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-primary mb-0"><i class="fas fa-users me-2"></i>معلومات الباحثين</h5>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addAuthor">
+                                    <i class="fas fa-plus me-1"></i>إضافة باحث
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="authorsContainer">
+                            <!-- سيتم إضافة الباحثين هنا ديناميكياً -->
+                        </div>
+                    </div>
+
+                    <!-- رفع الملف -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3"><i class="fas fa-upload me-2"></i>رفع ملف البحث</h5>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="researchFile" class="form-label">ملف البحث *</label>
+                            <input type="file" class="form-control" id="researchFile" name="researchFile" accept=".pdf,.doc,.docx" />
+                            <div class="form-text">
+                                الصيغ المدعومة: PDF, DOC, DOCX | الحد الأقصى: 50 ميجابايت
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أزرار الحفظ -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>إلغاء
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>حفظ وتقديم البحث
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let authorIndex = 0;
+
+        // إضافة الباحث الأول تلقائياً
+        $(document).ready(function() {
+            addAuthor(true); // الباحث الأول
+
+            // عداد الكلمات للملخصات
+            $('#AbstractAr').on('input', function() {
+                updateWordCount(this, 'abstractArCount');
+            });
+
+            $('#AbstractEn').on('input', function() {
+                updateWordCount(this, 'abstractEnCount');
+            });
+        });
+
+        // إضافة باحث جديد
+        $('#addAuthor').click(function() {
+            addAuthor(false);
+        });
+
+        function addAuthor(isFirst = false) {
+            const authorHtml = `
+                <div class="author-item border rounded p-3 mb-3" data-index="${authorIndex}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">
+                            <i class="fas fa-user me-2"></i>
+                            ${isFirst ? 'الباحث الرئيسي' : `الباحث ${authorIndex + 1}`}
+                            ${isFirst ? '<span class="badge bg-primary ms-2">مطلوب</span>' : ''}
+                        </h6>
+                        ${!isFirst ? '<button type="button" class="btn btn-sm btn-outline-danger remove-author"><i class="fas fa-trash"></i></button>' : ''}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأول *</label>
+                            <input name="Authors[${authorIndex}].FirstName" class="form-control" ${isFirst ? 'required' : ''} />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم العائلة *</label>
+                            <input name="Authors[${authorIndex}].LastName" class="form-control" ${isFirst ? 'required' : ''} />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">الاسم الأول (إنجليزي)</label>
+                            <input name="Authors[${authorIndex}].FirstNameEn" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">اسم العائلة (إنجليزي)</label>
+                            <input name="Authors[${authorIndex}].LastNameEn" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">البريد الإلكتروني *</label>
+                            <input name="Authors[${authorIndex}].Email" type="email" class="form-control" ${isFirst ? 'required' : ''} />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">المؤسسة</label>
+                            <input name="Authors[${authorIndex}].Institution" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">الدرجة العلمية</label>
+                            <select name="Authors[${authorIndex}].AcademicDegree" class="form-select">
+                                <option value="">اختر الدرجة</option>
+                                <option value="بكالوريوس">بكالوريوس</option>
+                                <option value="ماجستير">ماجستير</option>
+                                <option value="دكتوراه">دكتوراه</option>
+                                <option value="أستاذ مساعد">أستاذ مساعد</option>
+                                <option value="أستاذ مشارك">أستاذ مشارك</option>
+                                <option value="أستاذ">أستاذ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">رقم ORCID</label>
+                            <input name="Authors[${authorIndex}].OrcidId" class="form-control" placeholder="0000-0000-0000-0000" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check mt-4">
+                                // <input name="Authors[${authorIndex}].IsCorresponding" type="checkbox" class="form-check-input" ${isFirst ? 'checked' : ''} />
+                               <input name="Authors[${authorIndex}].IsCorresponding" type="hidden" value="false" />
+                                <input name="Authors[${authorIndex}].IsCorresponding" type="checkbox" class="form-check-input" value="true" ${isFirst ? 'checked' : ''} />
+
+                                <label class="form-check-label">الباحث المراسل</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input name="Authors[${authorIndex}].Order" type="hidden" value="${authorIndex + 1}" />
+                </div>
+            `;
+
+            $('#authorsContainer').append(authorHtml);
+            authorIndex++;
+        }
+
+        // حذف باحث
+        $(document).on('click', '.remove-author', function() {
+            $(this).closest('.author-item').remove();
+            updateAuthorIndices();
+        });
+
+        function updateAuthorIndices() {
+            $('#authorsContainer .author-item').each(function(index) {
+                $(this).find('input, select').each(function() {
+                    const name = $(this).attr('name');
+                    if (name) {
+                        $(this).attr('name', name.replace(/Authors\[\d+\]/, `Authors[${index}]`));
+                    }
+                });
+
+                $(this).find('input[type="hidden"]').val(index + 1);
+            });
+        }
+
+        function updateWordCount(element, counterId) {
+            const words = $(element).val().trim().split(/\s+/).length;
+            $(`#${counterId}`).text(words);
+
+            if (words > 300) {
+                $(`#${counterId}`).addClass('text-danger');
+            } else {
+                $(`#${counterId}`).removeClass('text-danger');
+            }
+        }
+
+        // التحقق من صحة النموذج قبل الإرسال
+        $('#researchForm').submit(function(e) {
+            const abstractArWords = $('#AbstractAr').val().trim().split(/\s+/).length;
+            const abstractEnWords = $('#AbstractEn').val().trim().split(/\s+/).length;
+
+            if (abstractArWords > 300) {
+                e.preventDefault();
+                alert('الملخص باللغة العربية يجب ألا يتجاوز 300 كلمة');
+                return false;
+            }
+
+            if (abstractEnWords > 300) {
+                e.preventDefault();
+                alert('الملخص باللغة الإنجليزية يجب ألا يتجاوز 300 كلمة');
+                return false;
+            }
+
+            // التحقق من وجود باحث واحد على الأقل
+            // if ($('#authorsContainer .author-item').length === 0) {
+            //     e.preventDefault();
+            //     alert('يجب إضافة باحث واحد على الأقل');
+            //     return false;
+            // }
+
+                    // التحقق من وجود بيانات صحيحة للباحث الأول
+        var firstAuthorValid = $('#authorsContainer .author-item').first()
+            .find('input[required]').toArray()
+            .every(input => input.value.trim() !== '');
+
+        if (!firstAuthorValid) {
+            e.preventDefault();
+            alert('يجب ملء بيانات الباحث الرئيسي');
+            return false;
+        }
+        });
+    </script>
+}
