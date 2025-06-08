@@ -192,7 +192,7 @@ app.UseRateLimiter();
 // ≈÷«›… Authentication Ê Authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
+await SeedDatabase(app);
 //  ﬂÊÌ‰ «·„”«—« 
 app.MapControllerRoute(
     name: "default",
@@ -200,42 +200,44 @@ app.MapControllerRoute(
     .RequireRateLimiting("general");
 
 //  ÿ»Ìﬁ Database Seeding »‘ﬂ· ¬„‰
-using (var scope = app.Services.CreateScope())
+async Task SeedDatabase(WebApplication app)
 {
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        logger.LogInformation("»œ¡  ‘€Ì· «· ÿ»Ìﬁ Ê ÿ»Ìﬁ ﬁ«⁄œ… «·»Ì«‰« ...");
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
 
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        var userManager = services.GetRequiredService<UserManager<User>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-        // ≈‰‘«¡ ﬁ«⁄œ… «·»Ì«‰«  ≈–« ·„  ﬂ‰ „ÊÃÊœ…
-        await context.Database.EnsureCreatedAsync();
-
-        //  ÿ»Ìﬁ Database Seeding
-        await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
-
-        logger.LogInformation(" „  ‘€Ì· «· ÿ»Ìﬁ »‰Ã«Õ");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "ÕœÀ Œÿ√ √À‰«¡ »œ¡ «· ‘€Ì· √Ê  ÿ»Ìﬁ ﬁ«⁄œ… «·»Ì«‰« ");
-
-        // ›Ì »Ì∆… «· ÿÊÌ—° Ì„ﬂ‰ ≈Ìﬁ«› «· ÿ»Ìﬁ
-        if (app.Environment.IsDevelopment())
+        try
         {
-            throw;
-        }
+            logger.LogInformation("»œ¡  ‘€Ì· «· ÿ»Ìﬁ Ê ÿ»Ìﬁ ﬁ«⁄œ… «·»Ì«‰« ...");
 
-        // ›Ì «·≈‰ «Ã° ”Ã· «·Œÿ√ Ê«” „—
-        logger.LogWarning("«” „—«— «· ‘€Ì· —€„ ›‘· Database Seeding");
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            var userManager = services.GetRequiredService<UserManager<User>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // ≈‰‘«¡ ﬁ«⁄œ… «·»Ì«‰«  ≈–« ·„  ﬂ‰ „ÊÃÊœ…
+            await context.Database.EnsureCreatedAsync();
+
+            //  ÿ»Ìﬁ Database Seeding
+            await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
+            await EnhancedDatabaseSeeder.SeedAsync(context, userManager, roleManager);
+            logger.LogInformation(" „  ‘€Ì· «· ÿ»Ìﬁ »‰Ã«Õ");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "ÕœÀ Œÿ√ √À‰«¡ »œ¡ «· ‘€Ì· √Ê  ÿ»Ìﬁ ﬁ«⁄œ… «·»Ì«‰« ");
+
+            // ›Ì »Ì∆… «· ÿÊÌ—° Ì„ﬂ‰ ≈Ìﬁ«› «· ÿ»Ìﬁ
+            if (app.Environment.IsDevelopment())
+            {
+                throw;
+            }
+
+            // ›Ì «·≈‰ «Ã° ”Ã· «·Œÿ√ Ê«” „—
+            logger.LogWarning("«” „—«— «· ‘€Ì· —€„ ›‘· Database Seeding");
+        }
     }
 }
-
 // ≈÷«›… „⁄·Ê„«  ≈÷«›Ì… ⁄‰ Õ«·… «· ÿ»Ìﬁ
 app.Lifetime.ApplicationStarted.Register(() =>
 {

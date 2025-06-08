@@ -78,10 +78,10 @@
 	<ItemGroup>
 		<Folder Include="logs\" />
 		<Folder Include="NewFolder\" />
-		<Folder Include="wwwroot\uploads\" />
 		<Folder Include="wwwroot\images\" />
 		<Folder Include="wwwroot\css\" />
 		<Folder Include="wwwroot\js\" />
+		<Folder Include="wwwroot\uploads\" />
 	</ItemGroup>
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
