@@ -6,6 +6,7 @@ using ResearchManagement.Domain.Entities;
 using ResearchManagement.Infrastructure.Data;
 using ResearchManagement.Infrastructure.Repositories;
 using ResearchManagement.Infrastructure.Services;
+
 namespace ResearchManagement.Web.Extensions
 {
     public static class ServiceCollectionExtensions
@@ -63,7 +64,11 @@ namespace ResearchManagement.Web.Extensions
 
         public static IServiceCollection AddMappingServices(this IServiceCollection services)
         {
-            services.AddAutoMapper(typeof(ResearchManagement.Application.Mappings.MappingProfile));
+            // تسجيل AutoMapper مع كلا من Application و Web profiles
+            services.AddAutoMapper(
+                typeof(ResearchManagement.Application.Mappings.ApplicationMappingProfile),
+                typeof(ResearchManagement.Web.Mappings.WebMappingProfile)
+            );
 
             return services;
         }
@@ -91,5 +96,4 @@ namespace ResearchManagement.Web.Extensions
             return services;
         }
     }
-
 }

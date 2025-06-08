@@ -51,7 +51,8 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
-
+//builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddMappingServices(); //  √ﬂœ „‰ Â–« «·”ÿ—
 // ≈⁄œ«œ Cookie ··ÂÊÌ…
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -64,22 +65,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
-
-
-//builder.Services.AddControllersWithViews();
-
-// ≈÷«›… Œœ„«  «· ÿ»Ìﬁ
-//builder.Services.AddApplicationServices(builder.Configuration);
-//builder.Services.AddRepositories();
-//builder.Services.AddBusinessServices();
-//builder.Services.AddMediatRServices();
-//builder.Services.AddMappingServices();
-//builder.Services.AddValidationServices();
-//builder.Services.AddConfigurationServices(builder.Configuration);
-//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-//builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
-
-
 
 
 //  ”ÃÌ· Repositories
@@ -95,31 +80,12 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
 
-
-
-
-
-//builder.Services.AddBackgroundServices();
-
-//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-//builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
-////  ”ÃÌ· Repositories
-//builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
-//builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-//builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
-
-////  ”ÃÌ· Services
-//builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-//builder.Services.AddScoped<IEmailService, EmailService>();
-//builder.Services.AddScoped<IFileService, FileService>();
-
 //  ”ÃÌ· MediatR
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(ResearchManagement.Application.Commands.Research.CreateResearchCommand).Assembly));
 
 //  ”ÃÌ· AutoMapper
-builder.Services.AddAutoMapper(typeof(ResearchManagement.Application.Mappings.MappingProfile));
+builder.Services.AddAutoMapper(typeof(ResearchManagement.Application.Mappings.ApplicationMappingProfile));
 
 //  ”ÃÌ· FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(ResearchManagement.Application.Validators.CreateResearchDtoValidator).Assembly);
