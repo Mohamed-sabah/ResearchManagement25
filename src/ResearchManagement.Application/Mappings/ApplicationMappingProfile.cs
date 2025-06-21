@@ -102,7 +102,8 @@ namespace ResearchManagement.Application.Mappings
 
             CreateMap<UploadFileDto, ResearchFile>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.FileName, opt => opt.Ignore())
+				.ForMember(d => d.ResearchId, o => o.Ignore())
+				.ForMember(dest => dest.FileName, opt => opt.Ignore())
                 .ForMember(dest => dest.OriginalFileName, opt => opt.MapFrom(src => src.FileName))
                 .ForMember(dest => dest.FilePath, opt => opt.Ignore())
                 .ForMember(dest => dest.FileSize, opt => opt.MapFrom(src => src.FileContent.Length))

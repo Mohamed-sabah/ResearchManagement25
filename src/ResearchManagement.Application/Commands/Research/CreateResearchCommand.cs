@@ -109,8 +109,40 @@ namespace ResearchManagement.Application.Commands.Research
                     _logger.LogInformation("تم حفظ المؤلفين - النتيجة: {SaveResult}", saveResult2);
                 }
 
-                // 4. إرسال إيميل التأكيد
-                try
+
+
+
+
+				// 4. persist uploaded files
+				if (request.Research.Files?.Any() == true)
+				{
+					foreach (var fileDto in request.Research.Files)
+					{
+						var fileEntity = new ResearchFile
+						{
+							ResearchId = research.Id,
+							FileName = fileDto.FileName,
+							OriginalFileName = fileDto.OriginalFileName,
+							FilePath = fileDto.FilePath,
+							ContentType = fileDto.ContentType,
+							FileSize = fileDto.FileSize,
+							FileType = fileDto.FileType,
+							Description = fileDto.Description,
+							Version = 1,
+							IsActive = true,
+							CreatedAt = DateTime.UtcNow,
+							CreatedBy = request.UserId
+						};
+						research.Files.Add(fileEntity);
+					}
+					var saveResult3 = await _unitOfWork.SaveChangesAsync(cancellationToken);
+					_logger.LogInformation("تم حفظ الملفات – النتيجة: {SaveResult}", saveResult3);
+				}
+
+
+
+				// 4. إرسال إيميل التأكيد
+				try
                 {
                     await _emailService.SendResearchSubmissionConfirmationAsync(research.Id);
                     _logger.LogInformation("تم إرسال إيميل التأكيد");

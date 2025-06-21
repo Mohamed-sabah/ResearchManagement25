@@ -428,23 +428,33 @@ namespace ResearchManagement.Web.Controllers
 
                 // Get research file info from database first
                 var research = await _mediator.Send(new GetResearchByIdQuery(fileId, user.Id.ToString()));
-                if (research == null || research.Files?.Any() != true)
-                {
-                    TempData["ErrorMessage"] = "الملف غير موجود أو ليس لديك صلاحية للوصول إليه";
+				var fileDto = await _mediator
+	.Send(new GetResearchFileByIdQuery(fileId, user.Id));
+
+				//if (research == null || research.Files?.Any() != true)
+				if (fileDto == null)
+
+				{
+					TempData["ErrorMessage"] = "الملف غير موجود أو ليس لديك صلاحية للوصول إليه";
                     return RedirectToAction(nameof(Index));
                 }
 
-                var file = research.Files.FirstOrDefault();
-                if (file == null)
-                {
-                    TempData["ErrorMessage"] = "الملف غير موجود";
-                    return RedirectToAction(nameof(Index));
-                }
+                //var file = research.Files.FirstOrDefault();
+                //if (file == null)
+                //{
+                //    TempData["ErrorMessage"] = "الملف غير موجود";
+                //    return RedirectToAction(nameof(Index));
+                //}
 
                 try
                 {
-                    var fileBytes = await _fileService.DownloadFileAsync(file.FilePath);
-                    return File(fileBytes, file.ContentType, file.OriginalFileName);
+
+					var bytes = await _fileService.DownloadFileAsync(fileDto.FilePath);
+					return File(bytes, fileDto.ContentType, fileDto.OriginalFileName);
+
+
+					//var fileBytes = await _fileService.DownloadFileAsync(file.FilePath);
+     //               return File(fileBytes, file.ContentType, file.OriginalFileName);
                 }
                 catch (Exception)
                 {

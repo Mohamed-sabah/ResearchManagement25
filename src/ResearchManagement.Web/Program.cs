@@ -200,7 +200,7 @@ async Task SeedDatabase(WebApplication app)
             }
 
             // ›Ì «·≈‰ «Ã° ”Ã· «·Œÿ√ Ê«” „—
-            logger.LogWarning("«” „—«— «· ‘€Ì· —€„ ›‘· Database Seeding");
+            logger.LogWarning("-");
         }
     }
 }
@@ -208,13 +208,13 @@ async Task SeedDatabase(WebApplication app)
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation(" „ »œ¡  ‘€Ì·  ÿ»Ìﬁ ≈œ«—… «·»ÕÊÀ «·⁄·„Ì… »‰Ã«Õ");
+    logger.LogInformation("-");
 });
 
 app.Lifetime.ApplicationStopping.Register(() =>
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Ã«—Ì ≈Ìﬁ«›  ÿ»Ìﬁ ≈œ«—… «·»ÕÊÀ «·⁄·„Ì…...");
+    logger.LogInformation("-");
 });
 
 app.Run();

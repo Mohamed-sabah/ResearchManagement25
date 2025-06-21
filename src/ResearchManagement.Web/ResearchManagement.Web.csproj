@@ -1,6 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <Compile Remove="logs\**" />
+    <Compile Remove="NewFolder\**" />
+    <Content Remove="logs\**" />
+    <Content Remove="NewFolder\**" />
+    <EmbeddedResource Remove="logs\**" />
+    <EmbeddedResource Remove="NewFolder\**" />
+    <None Remove="logs\**" />
+    <None Remove="NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ResearchManagement.Domain\ResearchManagement.Domain.csproj" />
     <ProjectReference Include="..\ResearchManagement.Application\ResearchManagement.Application.csproj" />
     <ProjectReference Include="..\ResearchManagement.Infrastructure\ResearchManagement.Infrastructure.csproj" />
@@ -76,8 +87,6 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<Folder Include="logs\" />
-		<Folder Include="NewFolder\" />
 		<Folder Include="wwwroot\images\" />
 		<Folder Include="wwwroot\css\" />
 		<Folder Include="wwwroot\js\" />

@@ -1,5 +1,8 @@
+using AutoMapper;
 using MediatR;
 using ResearchManagement.Application.DTOs;
+using ResearchManagement.Application.Interfaces;
+using ResearchManagement.Domain.Entities;
 
 namespace ResearchManagement.Application.Queries.Research
 {
@@ -13,5 +16,20 @@ namespace ResearchManagement.Application.Queries.Research
             Id = id;
             UserId = userId;
         }
+
+
     }
+	public class GetResearchFileByIdQuery : IRequest<ResearchFileDto?>
+	{
+		public int FileId { get; }
+		public string? UserId { get; }
+
+		public GetResearchFileByIdQuery(int fileId, string? userId = null)
+		{
+			FileId = fileId;
+			UserId = userId;
+		}
+	}
+
+
 }
