@@ -322,6 +322,22 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('click', function(event) {
+            var sidebar = document.querySelector('.sidebar'); // أو class الـ sidebar الخاصة بك
+            var toggleButton = document.querySelector('.sidebar-toggle'); // زر فتح الـ sidebar
+            var isClickInsideSidebar = sidebar.contains(event.target);
+            var isClickOnToggle = toggleButton && toggleButton.contains(event.target);
+
+            if (!isClickInsideSidebar && !isClickOnToggle) {
+                // إذا كان المينيو مفتوح
+                if (document.body.classList.contains('sidebar-open')) {
+                    document.body.classList.remove('sidebar-open');
+                }
+            }
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -50,6 +50,13 @@ namespace ResearchManagement.Application.Mappings
                 .ForMember(dest => dest.Reviews, opt => opt.Ignore())
                 .ForMember(dest => dest.StatusHistory, opt => opt.Ignore());
 
+            // تحديث: إضافة Reverse Mapping للتعديل
+            CreateMap<Research, CreateResearchDto>()
+                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => src.Authors
+                    .Where(a => !a.IsDeleted)
+                    .OrderBy(a => a.Order)))
+                .ForMember(dest => dest.Files, opt => opt.Ignore());
+
             // Research Author Mappings
             CreateMap<ResearchAuthor, ResearchAuthorDto>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
@@ -65,6 +72,9 @@ namespace ResearchManagement.Application.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.CreatedBy, opt => opt.Ignore());
 
+            // تحديث: إضافة Reverse Mapping للمؤلفين
+            CreateMap<ResearchAuthor, CreateResearchAuthorDto>();
+
             CreateMap<UpdateResearchAuthorDto, ResearchAuthor>()
                 .ForMember(dest => dest.ResearchId, opt => opt.Ignore())
                 .ForMember(dest => dest.Research, opt => opt.Ignore())
@@ -75,7 +85,8 @@ namespace ResearchManagement.Application.Mappings
             CreateMap<Review, ReviewDto>()
                 .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src =>
                     $"{src.Reviewer.FirstName} {src.Reviewer.LastName}"))
-                .ForMember(dest => dest.ResearchTitle, opt => opt.MapFrom(src => src.Research.Title));
+                .ForMember(dest => dest.ResearchTitle, opt => opt.MapFrom(src => src.Research.Title))
+                .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.OverallScore));
 
             CreateMap<CreateReviewDto, Review>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -83,6 +94,7 @@ namespace ResearchManagement.Application.Mappings
                 .ForMember(dest => dest.AssignedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.Deadline, opt => opt.MapFrom(src => DateTime.UtcNow.AddDays(21)))
                 .ForMember(dest => dest.IsCompleted, opt => opt.MapFrom(src => false))
+                .ForMember(dest => dest.RequiresReReview, opt => opt.MapFrom(src => false))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.Research, opt => opt.Ignore())
                 .ForMember(dest => dest.Reviewer, opt => opt.Ignore())
@@ -102,8 +114,8 @@ namespace ResearchManagement.Application.Mappings
 
             CreateMap<UploadFileDto, ResearchFile>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-				.ForMember(d => d.ResearchId, o => o.Ignore())
-				.ForMember(dest => dest.FileName, opt => opt.Ignore())
+                .ForMember(d => d.ResearchId, o => o.Ignore())
+                .ForMember(dest => dest.FileName, opt => opt.Ignore())
                 .ForMember(dest => dest.OriginalFileName, opt => opt.MapFrom(src => src.FileName))
                 .ForMember(dest => dest.FilePath, opt => opt.Ignore())
                 .ForMember(dest => dest.FileSize, opt => opt.MapFrom(src => src.FileContent.Length))

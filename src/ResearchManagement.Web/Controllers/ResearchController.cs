@@ -12,6 +12,10 @@ using ResearchManagement.Application.Interfaces;
 using ResearchManagement.Web.Models.ViewModels.Research;
 using ResearchManagement.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+
+using System.Linq;
+
 
 
 namespace ResearchManagement.Web.Controllers
@@ -208,7 +212,7 @@ namespace ResearchManagement.Web.Controllers
 
                 // Create research DTO
                 var createResearchDto = _mapper.Map<CreateResearchDto>(model);
-             
+
 
                 // Handle file uploads
                 if (files?.Any() == true)
@@ -282,10 +286,16 @@ namespace ResearchManagement.Web.Controllers
                     return RedirectToAction(nameof(Details), new { id });
                 }
 
+                // تحويل ResearchDto إلى CreateResearchViewModel
                 var viewModel = _mapper.Map<CreateResearchViewModel>(research);
                 viewModel.IsEditMode = true;
                 viewModel.ResearchId = id;
                 viewModel.CurrentUserId = user.Id;
+
+                // إعادة تهيئة القوائم المنسدلة
+                viewModel.ResearchTypeOptions = GetResearchTypeOptions();
+                viewModel.LanguageOptions = GetLanguageOptions();
+                viewModel.TrackOptions = GetTrackOptions();
 
                 return View(viewModel);
             }
@@ -303,27 +313,32 @@ namespace ResearchManagement.Web.Controllers
         [Authorize(Roles = "Researcher,Admin")]
         public async Task<IActionResult> Edit(int id, CreateResearchViewModel model, List<IFormFile> files)
         {
-            try
-            {
+            //try
+            //{
                 if (id != model.ResearchId)
                 {
                     return NotFound();
-                }
-
-                if (!ModelState.IsValid)
-                {
-                    return View(model);
                 }
 
                 var user = await GetCurrentUserAsync();
                 if (user == null)
                     return RedirectToAction("Login", "Account");
 
+                // إعادة تهيئة القوائم في حالة الخطأ
+                model.ResearchTypeOptions = GetResearchTypeOptions();
+                model.LanguageOptions = GetLanguageOptions();
+                model.TrackOptions = GetTrackOptions();
 
+                // التحقق من صحة النموذج
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
 
+                // تحويل ViewModel إلى DTO
                 var updateResearchDto = _mapper.Map<CreateResearchDto>(model);
 
-                // Add uploaded files to DTO if any
+                // معالجة الملفات المرفوعة
                 if (files?.Any() == true)
                 {
                     var uploadedFiles = new List<ResearchFileDto>();
@@ -331,26 +346,36 @@ namespace ResearchManagement.Web.Controllers
                     {
                         if (file.Length > 0)
                         {
-                            using var memoryStream = new MemoryStream();
-                            await file.CopyToAsync(memoryStream);
-                            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-                            var filePath = await _fileService.UploadFileAsync(memoryStream.ToArray(), fileName, file.ContentType);
-
-                            uploadedFiles.Add(new ResearchFileDto
+                            try
                             {
-                                FileName = fileName,
-                                OriginalFileName = file.FileName,
-                                FilePath = filePath,
-                                ContentType = file.ContentType,
-                                FileSize = file.Length,
-                                FileType = GetFileType(file.ContentType),
-                                Description = "ملف محدث"
-                            });
+                                using var memoryStream = new MemoryStream();
+                                await file.CopyToAsync(memoryStream);
+                                var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                                var filePath = await _fileService.UploadFileAsync(memoryStream.ToArray(), fileName, file.ContentType);
+
+                                uploadedFiles.Add(new ResearchFileDto
+                                {
+                                    FileName = fileName,
+                                    OriginalFileName = file.FileName,
+                                    FilePath = filePath,
+                                    ContentType = file.ContentType,
+                                    FileSize = file.Length,
+                                    FileType = GetFileType(file.ContentType),
+                                    Description = "ملف محدث"
+                                });
+                            }
+                            catch (Exception fileEx)
+                            {
+                                _logger.LogError(fileEx, "Error uploading file: {FileName}", file.FileName);
+                                ModelState.AddModelError("Files", $"فشل في رفع الملف: {file.FileName}");
+                                return View(model);
+                            }
                         }
                     }
                     updateResearchDto.Files = uploadedFiles;
                 }
 
+                // إنشاء الأمر
                 var command = new UpdateResearchCommand
                 {
                     ResearchId = id,
@@ -358,18 +383,65 @@ namespace ResearchManagement.Web.Controllers
                     UserId = user.Id
                 };
 
-                await _mediator.Send(command);
+                // تنفيذ الأمر
+                var result = await _mediator.Send(command);
 
-                TempData["SuccessMessage"] = "تم تحديث البحث بنجاح";
-                return RedirectToAction(nameof(Details), new { id });
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "تم تحديث البحث بنجاح";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "فشل في تحديث البحث";
+                    return View(model);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating research with ID: {ResearchId}", id);
-                TempData["ErrorMessage"] = "حدث خطأ أثناء تحديث البحث";
-                return View(model);
-            }
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Error occurred while updating research with ID: {ResearchId}", id);
+            //    TempData["ErrorMessage"] = "حدث خطأ أثناء تحديث البحث";
+
+            //    // إعادة تهيئة القوائم في حالة الخطأ
+            //    model.ResearchTypeOptions = GetResearchTypeOptions();
+            //    model.LanguageOptions = GetLanguageOptions();
+            //    model.TrackOptions = GetTrackOptions();
+
+            //    return View(model);
+            //}
+        //}
+
+        // Helper methods لإنشاء القوائم المنسدلة
+        private List<SelectListItem> GetResearchTypeOptions()
+        {
+            return Enum.GetValues<ResearchType>()
+                .Select(x => new SelectListItem
+                {
+                    Value = ((int)x).ToString(),
+                    Text = GetResearchTypeDisplayName(x)
+                }).ToList();
         }
+
+        private List<SelectListItem> GetLanguageOptions()
+        {
+            return Enum.GetValues<ResearchLanguage>()
+                .Select(x => new SelectListItem
+                {
+                    Value = ((int)x).ToString(),
+                    Text = GetLanguageDisplayName(x)
+                }).ToList();
+        }
+
+        private List<SelectListItem> GetTrackOptions()
+        {
+            return Enum.GetValues<ResearchTrack>()
+                .Select(x => new SelectListItem
+                {
+                    Value = ((int)x).ToString(),
+                    Text = GetTrackDisplayName(x)
+                }).ToList();
+        }
+
 
         // POST: Research/Delete/5
         [HttpPost]
@@ -547,15 +619,15 @@ namespace ResearchManagement.Web.Controllers
                 }).ToList();
         }
 
-        private List<SelectListItem> GetTrackOptions()
-        {
-            return Enum.GetValues<ResearchTrack>()
-                .Select(t => new SelectListItem
-                {
-                    Value = ((int)t).ToString(),
-                    Text = GetTrackDisplayName(t)
-                }).ToList();
-        }
+        //private List<SelectListItem> GetTrackOptions()
+        //{
+        //    return Enum.GetValues<ResearchTrack>()
+        //        .Select(t => new SelectListItem
+        //        {
+        //            Value = ((int)t).ToString(),
+        //            Text = GetTrackDisplayName(t)
+        //        }).ToList();
+        //}
 
         private static string GetStatusDisplayName(ResearchStatus status) => status switch
         {
@@ -566,6 +638,26 @@ namespace ResearchManagement.Web.Controllers
             ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
             ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات كبيرة",
             _ => status.ToString()
+        };
+        private static string GetResearchTypeDisplayName(ResearchType type) => type switch
+        {
+            ResearchType.OriginalResearch => "بحث أصلي",
+            ResearchType.SystematicReview => "مراجعة منهجية",
+            ResearchType.CaseStudy => "دراسة حالة",
+            ResearchType.ExperimentalStudy => "بحث تجريبي",
+            ResearchType.TheoreticalStudy => "بحث نظري",
+            ResearchType.AppliedResearch => "بحث تطبيقي",
+            ResearchType.LiteratureReview => "مراجعة أدبية",
+            ResearchType.ComparativeStudy => "بحث مقارن",
+            _ => type.ToString()
+        };
+
+        private static string GetLanguageDisplayName(ResearchLanguage language) => language switch
+        {
+            ResearchLanguage.Arabic => "العربية",
+            ResearchLanguage.English => "الإنجليزية",
+            ResearchLanguage.Bilingual => "ثنائي اللغة",
+            _ => language.ToString()
         };
 
         private static string GetTrackDisplayName(ResearchTrack track) => track switch
@@ -656,18 +748,18 @@ namespace ResearchManagement.Web.Controllers
     }
 
     // Additional Commands that might be needed
-    public class UpdateResearchCommand : IRequest<bool>
-    {
-        public int ResearchId { get; set; }
-        public CreateResearchDto Research { get; set; } = new();
-        public string UserId { get; set; } = string.Empty;
-    }
+//    public class UpdateResearchCommand : IRequest<bool>
+//    {
+//        public int ResearchId { get; set; }
+//        public CreateResearchDto Research { get; set; } = new();
+//        public string UserId { get; set; } = string.Empty;
+//    }
 
-    public class DeleteResearchCommand : IRequest<bool>
-    {
-        public int ResearchId { get; set; }
-        public string UserId { get; set; } = string.Empty;
-    }
+//    public class DeleteResearchCommand : IRequest<bool>
+//    {
+//        public int ResearchId { get; set; }
+//        public string UserId { get; set; } = string.Empty;
+//    }
 }
 
 

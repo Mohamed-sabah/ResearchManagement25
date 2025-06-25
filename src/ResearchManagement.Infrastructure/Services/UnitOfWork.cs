@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿
+
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using ResearchManagement.Application.Interfaces;
+using ResearchManagement.Domain.Entities;
 using ResearchManagement.Infrastructure.Data;
 using ResearchManagement.Infrastructure.Repositories;
 
@@ -9,18 +12,38 @@ namespace ResearchManagement.Infrastructure.Services
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<ResearchRepository> _logger;
+        private readonly ILogger<ResearchRepository> _researchLogger;
         private IDbContextTransaction? _transaction;
         private bool _disposed = false;
-        private IResearchRepository? _research;
 
-        public UnitOfWork(ApplicationDbContext context, ILogger<ResearchRepository> logger)
+        // Repositories
+        private IResearchRepository? _research;
+        private IGenericRepository<ResearchAuthor>? _researchAuthors;
+        private IGenericRepository<ResearchFile>? _researchFiles;
+        private IReviewRepository? _reviews;
+        private IResearchStatusHistoryRepository? _statusHistory;
+        private IUserRepository? _users;
+
+        public UnitOfWork(ApplicationDbContext context, ILogger<ResearchRepository> researchLogger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _researchLogger = researchLogger ?? throw new ArgumentNullException(nameof(researchLogger));
         }
 
-        public IResearchRepository Research => _research ??= new ResearchRepository(_context, _logger);
+        public IResearchRepository Research => _research ??= new ResearchRepository(_context, _researchLogger);
+
+        public IGenericRepository<ResearchAuthor> ResearchAuthors =>
+            _researchAuthors ??= new GenericRepository<ResearchAuthor>(_context);
+
+        public IGenericRepository<ResearchFile> ResearchFiles =>
+            _researchFiles ??= new GenericRepository<ResearchFile>(_context);
+
+        public IReviewRepository Reviews => _reviews ??= new ReviewRepository(_context);
+
+        public IResearchStatusHistoryRepository StatusHistory =>
+            _statusHistory ??= new ResearchStatusHistoryRepository(_context);
+
+        public IUserRepository Users => _users ??= new UserRepository(_context);
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
@@ -30,7 +53,6 @@ namespace ResearchManagement.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                // Log the exception here if you have logging
                 throw new InvalidOperationException("خطأ في حفظ البيانات", ex);
             }
         }

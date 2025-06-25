@@ -12,6 +12,10 @@ using Microsoft.AspNetCore.RateLimiting;
 using ResearchManagement.Web.Extensions;
 using ResearchManagement.Application.Commands.Research;
 using ResearchManagement.Application.Mappings;
+using MediatR;
+using ResearchManagement.Application.DTOs;
+using ResearchManagement.Application.Queries.Research;
+using ResearchManagement.Web.Mappings;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,15 +78,48 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
 
+
+
+
 //  ”ÃÌ· Services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
 
+// 4.  ”ÃÌ· «·Œœ„«  «·√Œ—Ï «·„ÿ·Ê»…
+
+builder.Services.AddScoped<IResearchRepository, ResearchRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
+
+
+
+
 //  ”ÃÌ· MediatR
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(ResearchManagement.Application.Commands.Research.CreateResearchCommand).Assembly));
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(CreateResearchCommandHandler).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(UpdateResearchCommandHandler).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(DeleteResearchCommandHandler).Assembly);
+    builder.Services.AddScoped<IRequestHandler<UpdateResearchStatusCommand, bool>, UpdateResearchStatusCommandHandler>();
+
+});
+
+// 3.  ”ÃÌ· Query Handlers
+builder.Services.AddScoped<IRequestHandler<GetResearchByIdQuery, ResearchDto?>, GetResearchByIdQueryHandler>();
+builder.Services.AddScoped<IRequestHandler<GetResearchFileByIdQuery, ResearchFileDto?>, GetResearchFileByIdQueryHandler>();
+builder.Services.AddScoped<IRequestHandler<GetResearchListQuery, PagedResult<ResearchDto>>, GetResearchListQueryHandler>();
+
+
+
+
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// 6. ≈÷«›… AutoMapper
+builder.Services.AddAutoMapper(typeof(ApplicationMappingProfile), typeof(WebMappingProfile));
 
 //  ”ÃÌ· AutoMapper
 builder.Services.AddAutoMapper(typeof(ResearchManagement.Application.Mappings.ApplicationMappingProfile));

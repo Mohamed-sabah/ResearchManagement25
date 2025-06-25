@@ -90,5 +90,6 @@ namespace ResearchManagement.Application.DTOs
         public ResearchTrack Track { get; set; }
         public string? Methodology { get; set; }
         public List<UpdateResearchAuthorDto> Authors { get; set; } = new();
+        public List<ResearchFileDto> Files { get; set; } = new();
     }
 }

@@ -19,26 +19,7 @@ namespace ResearchManagement.Application.Commands.Research
         public string UserId { get; set; } = string.Empty;
     }
 
-    //public class CreateResearchCommandHandler : IRequestHandler<CreateResearchCommand, int>
-    //{
-    //    private readonly IResearchRepository _researchRepository;
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly IEmailService _emailService;
-    //    private readonly IMapper _mapper;
 
-
-    //    public CreateResearchCommandHandler(
-    //        IResearchRepository researchRepository,
-    //        IUnitOfWork unitOfWork,
-    //        IEmailService emailService,
-    //        IMapper mapper)
-    //    {
-    //        _researchRepository = researchRepository;
-    //        _unitOfWork = unitOfWork;
-    //        _emailService = emailService;
-    //        _mapper = mapper;
-
-    //    }
     public class CreateResearchCommandHandler : IRequestHandler<CreateResearchCommand, int>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -166,60 +147,6 @@ namespace ResearchManagement.Application.Commands.Research
                 throw new InvalidOperationException($"فشل في حفظ البحث: {ex.Message}", ex);
             }
         }
-
-
-        //public async Task<int> Handle(CreateResearchCommand request, CancellationToken cancellationToken)
-        //{
-        //    await _unitOfWork.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        var research = _mapper.Map<Domain.Entities.Research>(request.Research);
-        //        research.SubmittedById = request.UserId;
-        //        research.Status = Domain.Enums.ResearchStatus.Submitted;
-        //        research.SubmissionDate = DateTime.UtcNow;
-        //        research.CreatedAt = DateTime.UtcNow;
-        //        research.CreatedBy = request.UserId;
-
-        //        // حفظ البحث أولاً للحصول على ID
-        //        await _researchRepository.AddAsync(research);
-        //        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        //        // الآن إضافة المؤلفين
-        //        if (request.Research.Authors?.Any() == true)
-        //        {
-        //            foreach (var authorDto in request.Research.Authors)
-        //            {
-        //                var author = _mapper.Map<Domain.Entities.ResearchAuthor>(authorDto);
-        //                author.ResearchId = research.Id; // الآن له قيمة صحيحة
-        //                author.CreatedAt = DateTime.UtcNow;
-        //                author.CreatedBy = request.UserId;
-        //                research.Authors.Add(author);
-        //            }
-        //            await _unitOfWork.SaveChangesAsync(cancellationToken);
-        //        }
-
-        //        // إرسال الإيميل
-        //        try
-        //        {
-        //            await _emailService.SendResearchSubmissionConfirmationAsync(research.Id);
-        //        }
-        //        catch (Exception emailEx)
-        //        {
-        //            // تسجيل خطأ الإيميل دون إيقاف العملية
-        //        }
-
-        //        await _unitOfWork.CommitTransactionAsync();
-
-        //        return research.Id;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _unitOfWork.RollbackTransactionAsync();
-
-        //        throw new InvalidOperationException($"فشل في حفظ البحث: {ex.Message}", ex);
-        //    }
-        //}
 
 
 
