@@ -64,13 +64,23 @@ namespace ResearchManagement.Application.Mappings
                     !string.IsNullOrEmpty(src.FirstNameEn) && !string.IsNullOrEmpty(src.LastNameEn)
                         ? $"{src.FirstNameEn} {src.LastNameEn}" : null));
 
+            //CreateMap<CreateResearchAuthorDto, ResearchAuthor>()
+            //    .ForMember(dest => dest.Id, opt => opt.Ignore())
+            //    .ForMember(dest => dest.ResearchId, opt => opt.Ignore())
+            //    .ForMember(dest => dest.Research, opt => opt.Ignore())
+            //    .ForMember(dest => dest.User, opt => opt.Ignore())
+            //    .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+            //    .ForMember(dest => dest.CreatedBy, opt => opt.Ignore());
             CreateMap<CreateResearchAuthorDto, ResearchAuthor>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.ResearchId, opt => opt.Ignore())
-                .ForMember(dest => dest.Research, opt => opt.Ignore())
-                .ForMember(dest => dest.User, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.ResearchId, opt => opt.Ignore())
+            .ForMember(dest => dest.Research, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // سيتم تعيينها في Handler
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore()) // سيتم تعيينها في Handler
+            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => false))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore());
 
             // تحديث: إضافة Reverse Mapping للمؤلفين
             CreateMap<ResearchAuthor, CreateResearchAuthorDto>();

@@ -40,115 +40,113 @@ try
 {
     Log.Information("»œ¡  ‘€Ì· «· ÿ»Ìﬁ");
 
-//    var builder = WebApplication.CreateBuilder(args);
+    //    var builder = WebApplication.CreateBuilder(args);
 
-//    // «” Œœ«„ Serilog
-//    builder.Host.UseSerilog();
+    //    // «” Œœ«„ Serilog
+    //    builder.Host.UseSerilog();
 
-//    // Add services to the container.
-//    builder.Services.AddApplicationServices(builder.Configuration);
-//    builder.Services.AddRepositories();
-//    builder.Services.AddBusinessServices();
-//    builder.Services.AddMediatRServices();
-//    builder.Services.AddMappingServices();
-//    builder.Services.AddValidationServices();
-//    builder.Services.AddConfigurationServices(builder.Configuration);
-//    builder.Services.AddBackgroundServices();
+    //    // Add services to the container.
+    //    builder.Services.AddApplicationServices(builder.Configuration);
+    //    builder.Services.AddRepositories();
+    //    builder.Services.AddBusinessServices();
+    //    builder.Services.AddMediatRServices();
+    //    builder.Services.AddMappingServices();
+    //    builder.Services.AddValidationServices();
+    //    builder.Services.AddConfigurationServices(builder.Configuration);
+    //    builder.Services.AddBackgroundServices();
 
-//    // ≈÷«›… Œœ„«  MVC
-//    builder.Services.AddControllersWithViews()
-//        .AddJsonOptions(options =>
-//        {
-//            options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-//        });
+    //    // ≈÷«›… Œœ„«  MVC
+    //    builder.Services.AddControllersWithViews()
+    //        .AddJsonOptions(options =>
+    //        {
+    //            options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+    //        });
 
-//    // ≈÷«›… «·Ã·”« 
-//    builder.Services.AddSession(options =>
-//    {
-//        options.IdleTimeout = TimeSpan.FromMinutes(30);
-//        options.Cookie.HttpOnly = true;
-//        options.Cookie.IsEssential = true;
-//    });
+    //    // ≈÷«›… «·Ã·”« 
+    //    builder.Services.AddSession(options =>
+    //    {
+    //        options.IdleTimeout = TimeSpan.FromMinutes(30);
+    //        options.Cookie.HttpOnly = true;
+    //        options.Cookie.IsEssential = true;
+    //    });
 
-//    //  ﬂÊÌ‰ Cookie
-//    builder.Services.ConfigureApplicationCookie(options =>
-//    {
-//        options.LoginPath = "/Account/Login";
-//        options.LogoutPath = "/Account/Logout";
-//        options.AccessDeniedPath = "/Account/AccessDenied";
-//        options.ExpireTimeSpan = TimeSpan.FromDays(7);
-//        options.SlidingExpiration = true;
-//    });
+    //    //  ﬂÊÌ‰ Cookie
+    //    builder.Services.ConfigureApplicationCookie(options =>
+    //    {
+    //        options.LoginPath = "/Account/Login";
+    //        options.LogoutPath = "/Account/Logout";
+    //        options.AccessDeniedPath = "/Account/AccessDenied";
+    //        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+    //        options.SlidingExpiration = true;
+    //    });
 
-//    var app = builder.Build();
+    //    var app = builder.Build();
 
-//    // Configure the HTTP request pipeline.
-//    if (!app.Environment.IsDevelopment())
-//    {
-//        app.UseExceptionHandler("/Home/Error");
-//        app.UseHsts();
-//    }
-//    else
-//    {
-//        // ›Ì »Ì∆… «· ÿÊÌ—° ‰—Ìœ —ƒÌ…  ›«’Ì· «·√Œÿ«¡
-//        app.UseDeveloperExceptionPage();
-//    }
+    //    // Configure the HTTP request pipeline.
+    //    if (!app.Environment.IsDevelopment())
+    //    {
+    //        app.UseExceptionHandler("/Home/Error");
+    //        app.UseHsts();
+    //    }
+    //    else
+    //    {
+    //        // ›Ì »Ì∆… «· ÿÊÌ—° ‰—Ìœ —ƒÌ…  ›«’Ì· «·√Œÿ«¡
+    //        app.UseDeveloperExceptionPage();
+    //    }
 
-//    // «” Œœ«„ „⁄«·Ã «·√Œÿ«¡ «·„Œ’’
-//    app.UseGlobalExceptionMiddleware();
+    //    // «” Œœ«„ „⁄«·Ã «·√Œÿ«¡ «·„Œ’’
+    //    app.UseGlobalExceptionMiddleware();
 
-//    app.UseHttpsRedirection();
-//    app.UseStaticFiles();
-//    app.UseRouting();
-//    app.UseSession();
+    //    app.UseHttpsRedirection();
+    //    app.UseStaticFiles();
+    //    app.UseRouting();
+    //    app.UseSession();
 
-//    app.UseAuthentication();
-//    app.UseAuthorization();
+    //    app.UseAuthentication();
+    //    app.UseAuthorization();
 
-//    // Serilog request logging
-//    app.UseSerilogRequestLogging();
+    //    // Serilog request logging
+    //    app.UseSerilogRequestLogging();
 
-//    app.MapControllerRoute(
-//        name: "default",
-//        pattern: "{controller=Home}/{action=Index}/{id?}");
+    //    app.MapControllerRoute(
+    //        name: "default",
+    //        pattern: "{controller=Home}/{action=Index}/{id?}");
 
-//    // Database initialization and seeding
-//    using (var scope = app.Services.CreateScope())
-//    {
-//        var services = scope.ServiceProvider;
-//        try
-//        {
-//            var context = services.GetRequiredService<ApplicationDbContext>();
-//            var userManager = services.GetRequiredService<UserManager<User>>();
-//            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    //    // Database initialization and seeding
+    //    using (var scope = app.Services.CreateScope())
+    //    {
+    //        var services = scope.ServiceProvider;
+    //        try
+    //        {
+    //            var context = services.GetRequiredService<ApplicationDbContext>();
+    //            var userManager = services.GetRequiredService<UserManager<User>>();
+    //            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-//            //  ÿ»Ìﬁ «·‹ migrations
-//            await context.Database.MigrateAsync();
+    //            //  ÿ»Ìﬁ «·‹ migrations
+    //            await context.Database.MigrateAsync();
 
-//            // “—⁄ «·»Ì«‰«  «·√Ê·Ì…
-//            await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
+    //            // “—⁄ «·»Ì«‰«  «·√Ê·Ì…
+    //            await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
 
-//            Log.Information(" „  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰«  »‰Ã«Õ");
-//        }
-//        catch (Exception ex)
-//        {
-//            Log.Fatal(ex, "Œÿ√ ›Ì  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰« ");
-//            throw;
-//        }
-//    }
+    //            Log.Information(" „  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰«  »‰Ã«Õ");
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            Log.Fatal(ex, "Œÿ√ ›Ì  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰« ");
+    //            throw;
+    //        }
+    //    }
 
-//    app.Run();
-//}
-//catch (Exception ex)
-//{
-//    Log.Fatal(ex, "›‘· »œ¡ «· ÿ»Ìﬁ");
-//}
-//finally
-//{
-//    Log.CloseAndFlush();
-//}
-
-
+    //    app.Run();
+    //}
+    //catch (Exception ex)
+    //{
+    //    Log.Fatal(ex, "›‘· »œ¡ «· ÿ»Ìﬁ");
+    //}
+    //finally
+    //{
+    //    Log.CloseAndFlush();
+    //}
 
 
 
@@ -160,7 +158,8 @@ try
 
 
 
-var builder = WebApplication.CreateBuilder(args);
+
+    var builder = WebApplication.CreateBuilder(args);
 
 // ≈⁄œ«œ Serilog ··‹ Logging «·„ ﬁœ„
 builder.Host.UseSerilog((context, configuration) =>
@@ -220,8 +219,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
 
-
- 
+    builder.Services.AddLogging();
 
     //  ”ÃÌ· Services
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

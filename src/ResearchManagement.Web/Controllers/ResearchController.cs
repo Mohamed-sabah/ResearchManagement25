@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using ResearchManagement.Infrastructure.Data;
 
 
 
@@ -27,18 +29,21 @@ namespace ResearchManagement.Web.Controllers
         private readonly IMapper _mapper;
         private readonly IFileService _fileService;
         private readonly ILogger<ResearchController> _logger;
+        private readonly ApplicationDbContext _context; // إضافة هذا
 
         public ResearchController(
             UserManager<User> userManager,
             IMediator mediator,
             IMapper mapper,
             IFileService fileService,
-            ILogger<ResearchController> logger) : base(userManager)
+            ILogger<ResearchController> logger,
+            ApplicationDbContext context) : base(userManager) // إضافة context
         {
             _mediator = mediator;
             _mapper = mapper;
             _fileService = fileService;
             _logger = logger;
+            _context = context; // إضافة هذا
         }
 
         // GET: Research
@@ -580,6 +585,34 @@ namespace ResearchManagement.Web.Controllers
             _logger.LogInformation("بيانات النموذج: Title={Title}, ResearchType={ResearchType}, Track={Track}",
                 model.Title, model.ResearchType, model.Track);
 
+
+            _logger.LogInformation("=== بدء عملية تعديل البحث ===");
+            _logger.LogInformation("ResearchId: {ResearchId}", id);
+            _logger.LogInformation("UserId: {UserId}", GetCurrentUserId());
+            _logger.LogInformation("Title: {Title}", model.Title);
+            _logger.LogInformation("Authors Count: {AuthorsCount}", model.Authors?.Count ?? 0);
+            _logger.LogInformation("Files Count: {FilesCount}", files?.Count ?? 0);
+
+
+
+            _logger.LogInformation("=== بدء عملية تعديل البحث ===");
+            _logger.LogInformation("ResearchId: {ResearchId}", id);
+            _logger.LogInformation("UserId: {UserId}", GetCurrentUserId());
+            _logger.LogInformation("Model.ResearchId: {ModelResearchId}", model.ResearchId);
+
+            // فحص المؤلفين
+            if (model.Authors != null)
+            {
+                _logger.LogInformation("عدد المؤلفين: {AuthorsCount}", model.Authors.Count);
+                foreach (var author in model.Authors)
+                {
+                    _logger.LogInformation("مؤلف: {FirstName} {LastName} <{Email}> - Order: {Order}",
+                        author.FirstName, author.LastName, author.Email, author.Order);
+                }
+            }
+
+
+
             // طباعة أخطاء النموذج
             if (!ModelState.IsValid)
             {
@@ -957,7 +990,90 @@ namespace ResearchManagement.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetResearchFiles(int researchId)
+        {
+            try
+            {
+                var user = await GetCurrentUserAsync();
+                if (user == null)
+                    return Unauthorized();
 
+                // التحقق من صلاحية الوصول للبحث
+                var research = await _mediator.Send(new GetResearchByIdQuery(researchId, user.Id));
+                if (research == null)
+                    return NotFound("البحث غير موجود أو ليس لديك صلاحية للوصول إليه");
+
+                var files = research.Files?.Where(f => f.IsActive).Select(f => new
+                {
+                    id = f.Id,
+                    fileName = f.OriginalFileName,
+                    fileSize = f.FileSizeFormatted,
+                    contentType = f.ContentType,
+                    description = f.Description,
+                    version = f.Version,
+                    createdAt = f.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
+                    downloadUrl = Url.Action("DownloadFile", new { fileId = f.Id })
+                }).ToList();
+
+                return Json(new { success = true, files });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في جلب ملفات البحث {ResearchId}", researchId);
+                return Json(new { success = false, message = "حدث خطأ في جلب الملفات" });
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteResearchFile(int fileId)
+        {
+            try
+            {
+                var user = await GetCurrentUserAsync();
+                if (user == null)
+                    return Unauthorized();
+
+                // جلب معلومات الملف
+                var fileDto = await _mediator.Send(new GetResearchFileByIdQuery(fileId, user.Id));
+                if (fileDto == null)
+                    return NotFound("الملف غير موجود");
+
+                // التحقق من صلاحية حذف الملف
+                var research = await _mediator.Send(new GetResearchByIdQuery(fileDto.ResearchId, user.Id));
+                if (research == null || !CanUploadFiles(research, user))
+                    return Forbid("ليس لديك صلاحية حذف هذا الملف");
+
+                // حذف الملف من قاعدة البيانات (Soft Delete)
+                var fileEntity = await _context.ResearchFiles.FindAsync(fileId);
+                if (fileEntity != null)
+                {
+                    fileEntity.IsActive = false;
+                    fileEntity.IsDeleted = true;
+                    fileEntity.UpdatedAt = DateTime.UtcNow;
+                    fileEntity.UpdatedBy = user.Id;
+
+                    await _context.SaveChangesAsync();
+
+                    // حذف الملف الفعلي من النظام
+                    try
+                    {
+                        await _fileService.DeleteFileAsync(fileEntity.FilePath);
+                    }
+                    catch (Exception fileEx)
+                    {
+                        _logger.LogWarning(fileEx, "فشل في حذف الملف الفعلي: {FilePath}", fileEntity.FilePath);
+                    }
+                }
+
+                return Json(new { success = true, message = "تم حذف الملف بنجاح" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "خطأ في حذف الملف {FileId}", fileId);
+                return Json(new { success = false, message = "حدث خطأ في حذف الملف" });
+            }
+        }
         #region Helper Methods
 
         private List<SelectListItem> GetStatusOptions()

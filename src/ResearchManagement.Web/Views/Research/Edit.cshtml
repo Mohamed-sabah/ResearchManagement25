@@ -256,7 +256,8 @@
 
 @section Scripts {
     <script>
-        let authorIndex = @Model.Authors.Count;
+                let authorIndex = @Model.Authors.Count;
+        let researchId = @(Model.ResearchId ?? 0);
 
         $(document).ready(function() {
             // Word count for abstracts
@@ -272,8 +273,258 @@
             });
 
             // Load current files
-            loadCurrentFiles();
+            if (researchId > 0) {
+                loadCurrentFiles();
+            }
+
+            // File upload preview
+            $('#newFiles').on('change', function() {
+                previewSelectedFiles(this);
+            });
         });
+
+        // Load current files from server
+        function loadCurrentFiles() {
+            if (researchId <= 0) {
+                $('#currentFiles').html(`
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        معرف البحث غير صحيح
+                    </div>
+                `);
+                return;
+            }
+
+            // Show loading spinner
+            $('#currentFiles').html(`
+                <div class="text-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    جاري تحميل الملفات...
+                </div>
+            `);
+
+            $.ajax({
+                url: '@Url.Action("GetResearchFiles", "Research")',
+                type: 'GET',
+                data: { researchId: researchId },
+                success: function(response) {
+                    if (response.success && response.files) {
+                        displayCurrentFiles(response.files);
+                    } else {
+                        $('#currentFiles').html(`
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ${response.message || 'لا توجد ملفات'}
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('خطأ في جلب الملفات:', error);
+                    $('#currentFiles').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            حدث خطأ في جلب الملفات
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        // Display current files
+        function displayCurrentFiles(files) {
+            if (!files || files.length === 0) {
+                $('#currentFiles').html(`
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد ملفات مرفوعة حالياً
+                    </div>
+                `);
+                return;
+            }
+
+            let filesHtml = '';
+
+            files.forEach(function(file) {
+                const fileIcon = getFileIcon(file.contentType);
+                const fileTypeClass = getFileTypeClass(file.contentType);
+
+                filesHtml += `
+                    <div class="file-item border rounded p-2 mb-2" data-file-id="${file.id}">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center flex-grow-1">
+                                <i class="${fileIcon} ${fileTypeClass} me-2"></i>
+                                <div class="file-info flex-grow-1">
+                                    <div class="file-name fw-bold text-truncate" title="${file.fileName}">
+                                        ${file.fileName}
+                                    </div>
+                                    <small class="text-muted">
+                                        ${file.fileSize} • ${file.createdAt}
+                                        ${file.description ? ' • ' + file.description : ''}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <a href="${file.downloadUrl}"
+                                   class="btn btn-sm btn-outline-primary me-1"
+                                   title="تحميل الملف">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger delete-file"
+                                        data-file-id="${file.id}"
+                                        title="حذف الملف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        ${file.version > 1 ? `<small class="badge bg-info">الإصدار ${file.version}</small>` : ''}
+                    </div>
+                `;
+            });
+
+            $('#currentFiles').html(filesHtml);
+        }
+
+        // Delete file
+        $(document).on('click', '.delete-file', function() {
+            const fileId = $(this).data('file-id');
+            const fileName = $(this).closest('.file-item').find('.file-name').text();
+
+            if (confirm(`هل أنت متأكد من حذف الملف "${fileName}"؟`)) {
+                deleteFile(fileId);
+            }
+        });
+
+        function deleteFile(fileId) {
+            const fileItem = $(`.file-item[data-file-id="${fileId}"]`);
+            const deleteBtn = fileItem.find('.delete-file');
+
+            // Show loading state
+            deleteBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: '@Url.Action("DeleteResearchFile", "Research")',
+                type: 'DELETE',
+                data: { fileId: fileId },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove file item with animation
+                        fileItem.fadeOut(300, function() {
+                            $(this).remove();
+
+                            // Check if no files left
+                            if ($('.file-item').length === 0) {
+                                $('#currentFiles').html(`
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        لا توجد ملفات مرفوعة حالياً
+                                    </div>
+                                `);
+                            }
+                        });
+
+                        // Show success message
+                        showToast('success', 'تم حذف الملف بنجاح');
+                    } else {
+                        showToast('error', response.message || 'فشل في حذف الملف');
+                        deleteBtn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('خطأ في حذف الملف:', error);
+                    showToast('error', 'حدث خطأ في حذف الملف');
+                    deleteBtn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                }
+            });
+        }
+
+        // Preview selected files
+        function previewSelectedFiles(input) {
+            const files = input.files;
+            const previewContainer = $('#filePreview');
+
+            if (files.length === 0) {
+                previewContainer.empty();
+                return;
+            }
+
+            let previewHtml = '<div class="mt-3"><h6>الملفات المحددة للرفع:</h6>';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileIcon = getFileIcon(file.type);
+                const fileTypeClass = getFileTypeClass(file.type);
+                const fileSize = formatFileSize(file.size);
+
+                previewHtml += `
+                    <div class="file-preview-item border rounded p-2 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="${fileIcon} ${fileTypeClass} me-2"></i>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">${file.name}</div>
+                                <small class="text-muted">${fileSize}</small>
+                            </div>
+                            <span class="badge bg-success">جديد</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            previewHtml += '</div>';
+
+            // Add or update preview
+            if (previewContainer.length === 0) {
+                $('#newFiles').after('<div id="filePreview"></div>');
+            }
+            $('#filePreview').html(previewHtml);
+        }
+
+        // Helper functions
+        function getFileIcon(contentType) {
+            if (contentType.includes('pdf')) return 'fas fa-file-pdf';
+            if (contentType.includes('word') || contentType.includes('document')) return 'fas fa-file-word';
+            if (contentType.includes('image')) return 'fas fa-file-image';
+            if (contentType.includes('excel') || contentType.includes('spreadsheet')) return 'fas fa-file-excel';
+            return 'fas fa-file';
+        }
+
+        function getFileTypeClass(contentType) {
+            if (contentType.includes('pdf')) return 'text-danger';
+            if (contentType.includes('word') || contentType.includes('document')) return 'text-primary';
+            if (contentType.includes('image')) return 'text-success';
+            if (contentType.includes('excel') || contentType.includes('spreadsheet')) return 'text-warning';
+            return 'text-secondary';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showToast(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+            const toast = $(`
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <i class="fas ${icon} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+
+            $('body').append(toast);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.alert('close');
+            }, 5000);
+        }
 
         // Add new author
         $('#addAuthor').click(function() {
@@ -358,7 +609,7 @@
                 });
 
                 $(this).find('input[name$=".Order"]').val(index + 1);
-                
+
                 // Update header text
                 const header = $(this).find('h6');
                 if (index === 0) {
@@ -367,7 +618,7 @@
                     header.html(`<i class="fas fa-user me-2"></i>الباحث ${index + 1}`);
                 }
             });
-            
+
             authorIndex = $('#authorsContainer .author-item').length;
         }
 
@@ -383,21 +634,10 @@
             }
         }
 
-        function loadCurrentFiles() {
-            // This would typically load from the server
-            // For now, we'll show a placeholder
-            $('#currentFiles').html(`
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    سيتم عرض الملفات الحالية هنا
-                </div>
-            `);
-        }
-
         // Form validation
         $('#editResearchForm').on('submit', function(e) {
             let isValid = true;
-            
+
             // Check required fields
             $(this).find('input[required], select[required], textarea[required]').each(function() {
                 if (!$(this).val().trim()) {
@@ -431,8 +671,30 @@
             transition: all 0.3s ease;
         }
 
-        .author-item:hover {
-            background-color: #e9ecef;
+            .author-item:hover {
+                background-color: #e9ecef;
+            }
+
+        .file-item {
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+            .file-item:hover {
+                background-color: #e9ecef;
+            }
+
+        .file-info .file-name {
+            max-width: 250px;
+        }
+
+        .file-actions .btn {
+            padding: 0.25rem 0.5rem;
+        }
+
+        .file-preview-item {
+            background-color: #f0f8ff;
+            border-left: 3px solid #007bff !important;
         }
 
         .is-invalid {
@@ -450,6 +712,15 @@
 
         .btn-group-vertical .btn {
             margin-bottom: 0.25rem;
+        }
+
+        .alert {
+            margin-bottom: 0;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
         }
     </style>
 }
