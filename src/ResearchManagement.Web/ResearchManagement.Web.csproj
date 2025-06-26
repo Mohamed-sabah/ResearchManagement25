@@ -1,17 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <Compile Remove="logs\**" />
-    <Compile Remove="NewFolder\**" />
-    <Content Remove="logs\**" />
-    <Content Remove="NewFolder\**" />
-    <EmbeddedResource Remove="logs\**" />
-    <EmbeddedResource Remove="NewFolder\**" />
-    <None Remove="logs\**" />
-    <None Remove="NewFolder\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ResearchManagement.Domain\ResearchManagement.Domain.csproj" />
     <ProjectReference Include="..\ResearchManagement.Application\ResearchManagement.Application.csproj" />
     <ProjectReference Include="..\ResearchManagement.Infrastructure\ResearchManagement.Infrastructure.csproj" />
@@ -76,7 +65,10 @@
 		<PackageReference Include="MediatR" Version="12.2.0" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
-		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+		<PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+		<PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.0" />
 
 	</ItemGroup>
@@ -87,6 +79,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<Folder Include="logs\" />
 		<Folder Include="wwwroot\images\" />
 		<Folder Include="wwwroot\css\" />
 		<Folder Include="wwwroot\js\" />

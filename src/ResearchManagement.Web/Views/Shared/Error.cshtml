@@ -1,182 +1,268 @@
-﻿@model ResearchManagement.Web.Models.ErrorViewModel
+﻿@model ErrorViewModel
 @{
     ViewData["Title"] = "خطأ";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-
-    // متغيرات آمنة
-    var requestId = Model?.RequestId ?? "غير متاح";
-    var showRequestId = Model?.ShowRequestId ?? false;
-    var currentPath = ViewContext.HttpContext.Request.Path.ToString();
-    var currentMethod = ViewContext.HttpContext.Request.Method;
-    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-    var userName = User.Identity?.Name ?? "غير مسجل";
+    Layout = "_Layout";
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
-                    </div>
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 5rem;"></i>
+                    <h1 class="mt-4 mb-3">عذراً، حدث خطأ!</h1>
 
-                    <h2 class="text-danger mb-3">عذراً، حدث خطأ!</h2>
-
-                    <p class="lead text-muted mb-4">
-                        حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.
-                    </p>
-
-                    @if (showRequestId)
+                    @if (ViewData["ErrorMessage"] != null)
                     {
-                        <div class="alert alert-info">
-                            <strong>رقم الطلب:</strong> <code>@requestId</code>
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @ViewData["ErrorMessage"]
                         </div>
                     }
 
-                    <div class="mt-4">
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary me-3">
-                            <i class="fas fa-home me-2"></i>العودة للرئيسية
-                        </a>
+                    @if (Model?.ShowRequestId ?? false)
+                    {
+                        <p class="text-muted">
+                            <strong>رقم الطلب:</strong> <code>@Model?.RequestId</code>
+                        </p>
+                    }
 
-                        <button onclick="history.back()" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>رجوع
-                        </button>
+                    <p class="lead text-muted mb-4">
+                        نعتذر عن هذا الخلل. يرجى المحاولة مرة أخرى أو التواصل مع الدعم الفني إذا استمرت المشكلة.
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            العودة للصفحة السابقة
+                        </a>
+                        <a href="@Url.Action("Index", "Dashboard")" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>
+                            الصفحة الرئيسية
+                        </a>
                     </div>
+
+                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("SystemAdmin"))
+                    {
+                        <div class="mt-5">
+                            <button class="btn btn-link text-muted" type="button" data-bs-toggle="collapse" data-bs-target="#errorDetails">
+                                <i class="fas fa-chevron-down me-2"></i>
+                                عرض التفاصيل التقنية
+                            </button>
+                            <div class="collapse mt-3" id="errorDetails">
+                                <div class="card">
+                                    <div class="card-body text-start">
+                                        <h6>معلومات تقنية:</h6>
+                                        <pre class="bg-light p-3 rounded">
+    Request ID: @Model?.RequestId
+    Time: @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+    User: @User.Identity?.Name
+    Path: @Context.Request.Path
+    Method: @Context.Request.Method
+                                            </pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@{
-    var isDevelopment = false;
-    try
-    {
-        var environment = ViewContext.HttpContext.RequestServices.GetService<IWebHostEnvironment>();
-        isDevelopment = environment?.IsDevelopment() ?? false;
-    }
-    catch
-    {
-        // في حالة فشل الحصول على البيئة
-        isDevelopment = false;
-    }
+@section Scripts {
+    <script>
+        // تسجيل الخطأ في console للمطورين
+        console.error('Error occurred:', {
+            requestId: '@Model?.RequestId',
+            path: '@Context.Request.Path',
+            time: new Date().toISOString()
+        });
+    </script>
 }
 
-@if (isDevelopment)
-{
-    <div class="container mt-3">
-        <div class="card border-danger">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">🔧 معلومات التطوير</h5>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-warning">
-                    <strong>⚠️ معلومات التطوير:</strong> هذه التفاصيل تظهر فقط في بيئة Development
+
+
+@* @model ResearchManagement.Web.Models.ErrorViewModel
+@{
+ViewData["Title"] = "خطأ";
+Layout = "~/Views/Shared/_Layout.cshtml";
+
+// متغيرات آمنة
+var requestId = Model?.RequestId ?? "غير متاح";
+var showRequestId = Model?.ShowRequestId ?? false;
+var currentPath = ViewContext.HttpContext.Request.Path.ToString();
+var currentMethod = ViewContext.HttpContext.Request.Method;
+var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+var userName = User.Identity?.Name ?? "غير مسجل";
+}
+
+<div class="container mt-5">
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6>📊 معلومات الطلب:</h6>
-                        <ul class="small">
-                            <li><strong>Method:</strong> @currentMethod</li>
-                            <li><strong>Path:</strong> @currentPath</li>
-                            <li><strong>Query:</strong> @ViewContext.HttpContext.Request.QueryString</li>
-                            <li><strong>Request ID:</strong> @requestId</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>🔐 معلومات المستخدم:</h6>
-                        <ul class="small">
-                            <li><strong>مُسجل دخول:</strong> @(isAuthenticated ? "نعم" : "لا")</li>
-                            @if (isAuthenticated)
-                            {
-                                <li><strong>الاسم:</strong> @userName</li>
-                                <li><strong>ID:</strong> @(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "غير متاح")</li>
-                            }
-                        </ul>
-                    </div>
-                </div>
+                <h2 class="text-danger mb-3">عذراً، حدث خطأ!</h2>
 
-                @{
-                    Exception exceptionDetails = null;
-                    try
-                    {
-                        var feature = ViewContext.HttpContext.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
-                        exceptionDetails = feature?.Error;
-                    }
-                    catch
-                    {
-                        // تجاهل أي خطأ في الحصول على تفاصيل الخطأ
-                    }
-                }
+                <p class="lead text-muted mb-4">
+                    حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.
+                </p>
 
-                @if (exceptionDetails != null)
-                {
-                    <div class="mt-3">
-                        <h6 class="text-danger">📋 تفاصيل الخطأ:</h6>
-                        <div class="bg-light p-3 rounded">
-                            <p><strong>نوع الخطأ:</strong> <code class="text-danger">@exceptionDetails.GetType().Name</code></p>
-                            <p><strong>رسالة الخطأ:</strong></p>
-                            <div class="bg-white p-2 border rounded">
-                                <pre class="text-danger mb-0 small">@exceptionDetails.Message</pre>
-                            </div>
-
-                            @if (exceptionDetails.InnerException != null)
-                            {
-                                <p class="mt-2"><strong>الخطأ الداخلي:</strong></p>
-                                <div class="bg-white p-2 border rounded">
-                                    <pre class="text-warning mb-0 small">@exceptionDetails.InnerException.Message</pre>
-                                </div>
-                            }
-
-                            <details class="mt-3">
-                                <summary class="btn btn-outline-danger btn-sm">📄 عرض Stack Trace الكامل</summary>
-                                <div class="mt-2 bg-white p-2 border rounded">
-                                    <pre class="text-muted mb-0" style="font-size: 11px; max-height: 300px; overflow-y: auto;">@exceptionDetails.StackTrace</pre>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                }
-                else
+                @if (showRequestId)
                 {
                     <div class="alert alert-info">
-                        <h6>💡 نصائح لاستكشاف الأخطاء:</h6>
-                        <ul class="small mb-0">
-                            <li><strong>تحقق من Console Output</strong> - ابحث عن رسائل الخطأ عند بدء التطبيق</li>
-                            <li><strong>فحص قاعدة البيانات</strong> - تأكد من أن Connection String صحيح</li>
-                            <li><strong>تحقق من Services</strong> - تأكد من تسجيل جميع Dependencies</li>
-                            <li><strong>Browser Tools</strong> - اضغط F12 وتحقق من Console و Network tabs</li>
-                            <li><strong>حاول تشغيل</strong> - <code>Update-Database</code> في Package Manager Console</li>
-                        </ul>
+                        <strong>رقم الطلب:</strong> <code>@requestId</code>
                     </div>
                 }
 
-                <div class="mt-3 p-2 bg-light rounded">
-                    <small class="text-muted">
-                        💡 <strong>خطوات التشخيص:</strong>
-                        1. تحقق من Console messages عند بدء التطبيق
-                        2. راجع appsettings.json للتأكد من Connection String
-                        3. تأكد من تشغيل SQL Server
-                        4. جرب تشغيل Update-Database
-                    </small>
+                <div class="mt-4">
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary me-3">
+                        <i class="fas fa-home me-2"></i>العودة للرئيسية
+                    </a>
+
+                    <button onclick="history.back()" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>رجوع
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+</div>
+</div>
+
+@{
+var isDevelopment = false;
+try
+{
+    var environment = ViewContext.HttpContext.RequestServices.GetService<IWebHostEnvironment>();
+    isDevelopment = environment?.IsDevelopment() ?? false;
+}
+catch
+{
+    // في حالة فشل الحصول على البيئة
+    isDevelopment = false;
+}
+}
+
+@if (isDevelopment)
+{
+<div class="container mt-3">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">🔧 معلومات التطوير</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <strong>⚠️ معلومات التطوير:</strong> هذه التفاصيل تظهر فقط في بيئة Development
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6>📊 معلومات الطلب:</h6>
+                    <ul class="small">
+                        <li><strong>Method:</strong> @currentMethod</li>
+                        <li><strong>Path:</strong> @currentPath</li>
+                        <li><strong>Query:</strong> @ViewContext.HttpContext.Request.QueryString</li>
+                        <li><strong>Request ID:</strong> @requestId</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>🔐 معلومات المستخدم:</h6>
+                    <ul class="small">
+                        <li><strong>مُسجل دخول:</strong> @(isAuthenticated ? "نعم" : "لا")</li>
+                        @if (isAuthenticated)
+                        {
+                            <li><strong>الاسم:</strong> @userName</li>
+                            <li><strong>ID:</strong> @(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "غير متاح")</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            @{
+                Exception exceptionDetails = null;
+                try
+                {
+                    var feature = ViewContext.HttpContext.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+                    exceptionDetails = feature?.Error;
+                }
+                catch
+                {
+                    // تجاهل أي خطأ في الحصول على تفاصيل الخطأ
+                }
+            }
+
+            @if (exceptionDetails != null)
+            {
+                <div class="mt-3">
+                    <h6 class="text-danger">📋 تفاصيل الخطأ:</h6>
+                    <div class="bg-light p-3 rounded">
+                        <p><strong>نوع الخطأ:</strong> <code class="text-danger">@exceptionDetails.GetType().Name</code></p>
+                        <p><strong>رسالة الخطأ:</strong></p>
+                        <div class="bg-white p-2 border rounded">
+                            <pre class="text-danger mb-0 small">@exceptionDetails.Message</pre>
+                        </div>
+
+                        @if (exceptionDetails.InnerException != null)
+                        {
+                            <p class="mt-2"><strong>الخطأ الداخلي:</strong></p>
+                            <div class="bg-white p-2 border rounded">
+                                <pre class="text-warning mb-0 small">@exceptionDetails.InnerException.Message</pre>
+                            </div>
+                        }
+
+                        <details class="mt-3">
+                            <summary class="btn btn-outline-danger btn-sm">📄 عرض Stack Trace الكامل</summary>
+                            <div class="mt-2 bg-white p-2 border rounded">
+                                <pre class="text-muted mb-0" style="font-size: 11px; max-height: 300px; overflow-y: auto;">@exceptionDetails.StackTrace</pre>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h6>💡 نصائح لاستكشاف الأخطاء:</h6>
+                    <ul class="small mb-0">
+                        <li><strong>تحقق من Console Output</strong> - ابحث عن رسائل الخطأ عند بدء التطبيق</li>
+                        <li><strong>فحص قاعدة البيانات</strong> - تأكد من أن Connection String صحيح</li>
+                        <li><strong>تحقق من Services</strong> - تأكد من تسجيل جميع Dependencies</li>
+                        <li><strong>Browser Tools</strong> - اضغط F12 وتحقق من Console و Network tabs</li>
+                        <li><strong>حاول تشغيل</strong> - <code>Update-Database</code> في Package Manager Console</li>
+                    </ul>
+                </div>
+            }
+
+            <div class="mt-3 p-2 bg-light rounded">
+                <small class="text-muted">
+                    💡 <strong>خطوات التشخيص:</strong>
+                    1. تحقق من Console messages عند بدء التطبيق
+                    2. راجع appsettings.json للتأكد من Connection String
+                    3. تأكد من تشغيل SQL Server
+                    4. جرب تشغيل Update-Database
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
 }
 
 <script>
-    // معلومات مفيدة للمطورين في Browser Console
-    console.group('🔴 تفاصيل الخطأ');
-    console.log('Request ID:', '@requestId');
-    console.log('Path:', '@currentPath');
-    console.log('Method:', '@currentMethod');
-    console.log('User Authenticated:', @(isAuthenticated ? "true" : "false"));
-    console.log('Environment:', '@(isDevelopment ? "Development" : "Production")');
-    console.log('Time:', new Date().toLocaleString('ar-SA'));
-    console.groupEnd();
+// معلومات مفيدة للمطورين في Browser Console
+console.group('🔴 تفاصيل الخطأ');
+console.log('Request ID:', '@requestId');
+console.log('Path:', '@currentPath');
+console.log('Method:', '@currentMethod');
+console.log('User Authenticated:', @(isAuthenticated ? "true" : "false"));
+console.log('Environment:', '@(isDevelopment ? "Development" : "Production")');
+console.log('Time:', new Date().toLocaleString('ar-SA'));
+console.groupEnd();
 
-    console.log('💡 نصيحة: تحقق من Network tab في Developer Tools للحصول على مزيد من التفاصيل');
-</script>
+console.log('💡 نصيحة: تحقق من Network tab في Developer Tools للحصول على مزيد من التفاصيل');
+</script> *@

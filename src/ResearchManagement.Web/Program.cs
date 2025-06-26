@@ -1,3 +1,11 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using ResearchManagement.Infrastructure.Data;
+using ResearchManagement.Domain.Entities;
+using ResearchManagement.Web.Extensions;
+using ResearchManagement.Infrastructure.Middleware;
+using Serilog;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using ResearchManagement.Domain.Entities;
@@ -16,22 +24,156 @@ using MediatR;
 using ResearchManagement.Application.DTOs;
 using ResearchManagement.Application.Queries.Research;
 using ResearchManagement.Web.Mappings;
+using Microsoft.Extensions.Options;
+
+//  ﬂÊÌ‰ Serilog ··Õ’Ê· ⁄·Ï  ”ÃÌ· √›÷·
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/researchmanagement-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+try
+{
+    Log.Information("»œ¡  ‘€Ì· «· ÿ»Ìﬁ");
+
+//    var builder = WebApplication.CreateBuilder(args);
+
+//    // «” Œœ«„ Serilog
+//    builder.Host.UseSerilog();
+
+//    // Add services to the container.
+//    builder.Services.AddApplicationServices(builder.Configuration);
+//    builder.Services.AddRepositories();
+//    builder.Services.AddBusinessServices();
+//    builder.Services.AddMediatRServices();
+//    builder.Services.AddMappingServices();
+//    builder.Services.AddValidationServices();
+//    builder.Services.AddConfigurationServices(builder.Configuration);
+//    builder.Services.AddBackgroundServices();
+
+//    // ≈÷«›… Œœ„«  MVC
+//    builder.Services.AddControllersWithViews()
+//        .AddJsonOptions(options =>
+//        {
+//            options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+//        });
+
+//    // ≈÷«›… «·Ã·”« 
+//    builder.Services.AddSession(options =>
+//    {
+//        options.IdleTimeout = TimeSpan.FromMinutes(30);
+//        options.Cookie.HttpOnly = true;
+//        options.Cookie.IsEssential = true;
+//    });
+
+//    //  ﬂÊÌ‰ Cookie
+//    builder.Services.ConfigureApplicationCookie(options =>
+//    {
+//        options.LoginPath = "/Account/Login";
+//        options.LogoutPath = "/Account/Logout";
+//        options.AccessDeniedPath = "/Account/AccessDenied";
+//        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+//        options.SlidingExpiration = true;
+//    });
+
+//    var app = builder.Build();
+
+//    // Configure the HTTP request pipeline.
+//    if (!app.Environment.IsDevelopment())
+//    {
+//        app.UseExceptionHandler("/Home/Error");
+//        app.UseHsts();
+//    }
+//    else
+//    {
+//        // ›Ì »Ì∆… «· ÿÊÌ—° ‰—Ìœ —ƒÌ…  ›«’Ì· «·√Œÿ«¡
+//        app.UseDeveloperExceptionPage();
+//    }
+
+//    // «” Œœ«„ „⁄«·Ã «·√Œÿ«¡ «·„Œ’’
+//    app.UseGlobalExceptionMiddleware();
+
+//    app.UseHttpsRedirection();
+//    app.UseStaticFiles();
+//    app.UseRouting();
+//    app.UseSession();
+
+//    app.UseAuthentication();
+//    app.UseAuthorization();
+
+//    // Serilog request logging
+//    app.UseSerilogRequestLogging();
+
+//    app.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=Home}/{action=Index}/{id?}");
+
+//    // Database initialization and seeding
+//    using (var scope = app.Services.CreateScope())
+//    {
+//        var services = scope.ServiceProvider;
+//        try
+//        {
+//            var context = services.GetRequiredService<ApplicationDbContext>();
+//            var userManager = services.GetRequiredService<UserManager<User>>();
+//            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+//            //  ÿ»Ìﬁ «·‹ migrations
+//            await context.Database.MigrateAsync();
+
+//            // “—⁄ «·»Ì«‰«  «·√Ê·Ì…
+//            await DatabaseSeeder.SeedAsync(context, userManager, roleManager);
+
+//            Log.Information(" „  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰«  »‰Ã«Õ");
+//        }
+//        catch (Exception ex)
+//        {
+//            Log.Fatal(ex, "Œÿ√ ›Ì  ÂÌ∆… ﬁ«⁄œ… «·»Ì«‰« ");
+//            throw;
+//        }
+//    }
+
+//    app.Run();
+//}
+//catch (Exception ex)
+//{
+//    Log.Fatal(ex, "›‘· »œ¡ «· ÿ»Ìﬁ");
+//}
+//finally
+//{
+//    Log.CloseAndFlush();
+//}
+
+
+
+
+
+
+
+
+
+
+
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ≈⁄œ«œ Serilog ··‹ Logging «·„ ﬁœ„
 builder.Host.UseSerilog((context, configuration) =>
-    configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .WriteTo.Console()
-        .WriteTo.File("logs/app-.txt", rollingInterval: RollingInterval.Day));
+configuration
+.ReadFrom.Configuration(context.Configuration)
+.WriteTo.Console()
+.WriteTo.File("logs/app-.txt", rollingInterval: RollingInterval.Day));
 
 // ≈⁄œ«œ DbContext
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // ≈⁄œ«œ Identity „⁄  Õ”Ì‰«  «·√„«‰
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
@@ -79,10 +221,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHistoryRepository>();
 
 
+ 
 
-
-//  ”ÃÌ· Services
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    //  ”ÃÌ· Services
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
@@ -99,8 +241,9 @@ builder.Services.AddScoped<IResearchStatusHistoryRepository, ResearchStatusHisto
 
 //  ”ÃÌ· MediatR
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(ResearchManagement.Application.Commands.Research.CreateResearchCommand).Assembly));
-builder.Services.AddMediatR(cfg => {
+cfg.RegisterServicesFromAssembly(typeof(ResearchManagement.Application.Commands.Research.CreateResearchCommand).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
     cfg.RegisterServicesFromAssembly(typeof(CreateResearchCommandHandler).Assembly);
     cfg.RegisterServicesFromAssembly(typeof(UpdateResearchCommandHandler).Assembly);
     cfg.RegisterServicesFromAssembly(typeof(DeleteResearchCommandHandler).Assembly);
@@ -198,9 +341,9 @@ app.UseAuthorization();
 await SeedDatabase(app);
 //  ﬂÊÌ‰ «·„”«—« 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .RequireRateLimiting("general");
+name: "default",
+pattern: "{controller=Home}/{action=Index}/{id?}")
+.RequireRateLimiting("general");
 
 //  ÿ»Ìﬁ Database Seeding »‘ﬂ· ¬„‰
 async Task SeedDatabase(WebApplication app)
@@ -255,3 +398,12 @@ app.Lifetime.ApplicationStopping.Register(() =>
 });
 
 app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "›‘· »œ¡ «· ÿ»Ìﬁ");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
