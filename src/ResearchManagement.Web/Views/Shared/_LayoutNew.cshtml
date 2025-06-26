@@ -390,6 +390,79 @@
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
+
+
+
+
+
+        .btn-submitting {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+            .btn-submitting::after {
+                content: "جاري المعالجة...";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+                font-size: 0.875rem;
+                font-weight: 500;
+                white-space: nowrap;
+                padding-left: 24px;
+            }
+
+            .btn-submitting::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: calc(50% - 60px);
+                transform: translateY(-50%);
+                width: 16px;
+                height: 16px;
+                border: 2px solid #ffffff;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.75s linear infinite;
+            }
+
+        /* Different colors for different button types */
+        .btn-primary.btn-submitting::before {
+            border-color: #ffffff;
+            border-right-color: transparent;
+        }
+
+        .btn-success.btn-submitting::before {
+            border-color: #ffffff;
+            border-right-color: transparent;
+        }
+
+        .btn-warning.btn-submitting::before {
+            border-color: #ffffff;
+            border-right-color: transparent;
+        }
+
+        .btn-danger.btn-submitting::before {
+            border-color: #ffffff;
+            border-right-color: transparent;
+        }
+
+        /* Prevent form resubmission */
+        form[data-submitting="true"] button[type="submit"] {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        }
     </style>
 </head>
 
@@ -673,6 +746,10 @@
 
     <!-- Global JavaScript -->
     <script>
+
+
+                // استبدل الجزء الخاص بـ "Loading states for buttons" في الـ layout بهذا:
+
         $(document).ready(function() {
             // Auto-hide alerts after 5 seconds
             setTimeout(function() {
@@ -690,18 +767,42 @@
                 }
             });
 
-            // Loading states for buttons
-            $('.btn[type="submit"]').on('click', function() {
-                var btn = $(this);
-                var originalText = btn.html();
-                btn.html('<span class="loading-spinner me-2"></span>جاري المعالجة...');
-                btn.prop('disabled', true);
+            // ✅ الحل الصحيح - Loading states for submit buttons
+            $('form').on('submit', function() {
+                var form = $(this);
+                var submitBtn = form.find('button[type="submit"], input[type="submit"]');
 
-                // Re-enable after form submission or timeout
+                // التحقق من صحة الـ form أولاً
+                if (form[0].checkValidity && !form[0].checkValidity()) {
+                    return; // لا تفعل شيء إذا كان الـ form غير صحيح
+                }
+
+                if (submitBtn.length && !submitBtn.hasClass('btn-submitting')) {
+                    // إضافة كلاس التحميل بعد تأخير قصير
+                    setTimeout(function() {
+                        submitBtn.addClass('btn-submitting');
+                    }, 200);
+
+                    // إعادة التفعيل بعد 15 ثانية كحد أقصى
+                    setTimeout(function() {
+                        submitBtn.removeClass('btn-submitting');
+                    }, 15000);
+                }
+            });
+
+            // منع الإرسال المتكرر
+            $('form').on('submit', function(e) {
+                var form = $(this);
+                if (form.data('submitting')) {
+                    e.preventDefault();
+                    return false;
+                }
+                form.data('submitting', true);
+
+                // إعادة تفعيل الإرسال بعد timeout
                 setTimeout(function() {
-                    btn.html(originalText);
-                    btn.prop('disabled', false);
-                }, 10000);
+                    form.removeData('submitting');
+                }, 15000);
             });
 
             // Tooltip initialization
@@ -717,21 +818,12 @@
             });
 
             // Form validation enhancement
-            $('form').on('submit', function() {
-                var form = $(this);
-                var isValid = true;
-
-                // Check required fields
-                form.find('input[required], select[required], textarea[required]').each(function() {
-                    if (!$(this).val().trim()) {
-                        $(this).addClass('is-invalid');
-                        isValid = false;
-                    } else {
-                        $(this).removeClass('is-invalid');
-                    }
-                });
-
-                return isValid;
+            $('input, select, textarea').on('blur change', function() {
+                if ($(this).attr('required') && !$(this).val().trim()) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
             });
 
             // Real-time notification updates
@@ -751,54 +843,138 @@
                     // Update notification count
                     var count = parseInt($('#notificationCount').text()) + 1;
                     $('#notificationCount').text(count);
-                    
+
                     // Show toast notification
                     showToast('إشعار جديد', message, 'info');
                 });
             }
         });
+        // $(document).ready(function() {
+        //     // Auto-hide alerts after 5 seconds
+        //     setTimeout(function() {
+        //         $('.alert').fadeOut('slow');
+        //     }, 5000);
 
-        // Toast notification function
-        function showToast(title, message, type = 'info') {
-            var toastHtml = `
-                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <strong>${title}</strong><br>
-                            ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            `;
+        //     // Smooth scrolling for anchor links
+        //     $('a[href^="#"]').on('click', function(event) {
+        //         var target = $(this.getAttribute('href'));
+        //         if (target.length) {
+        //             event.preventDefault();
+        //             $('html, body').stop().animate({
+        //                 scrollTop: target.offset().top - 100
+        //             }, 1000);
+        //         }
+        //     });
+
+        //     // Loading states for buttons
+        //     $('.btn[type="submit"]').on('click', function() {
+        //         var btn = $(this);
+        //         var originalText = btn.html();
+        //         btn.html('<span class="loading-spinner me-2"></span>جاري المعالجة...');
+        //         btn.prop('disabled', true);
+
+        //         // Re-enable after form submission or timeout
+        //         setTimeout(function() {
+        //             btn.html(originalText);
+        //             btn.prop('disabled', false);
+        //         }, 10000);
+        //     });
+
+        //     // Tooltip initialization
+        //     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        //     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        //         return new bootstrap.Tooltip(tooltipTriggerEl);
+        //     });
+
+        //     // Popover initialization
+        //     var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        //     var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        //         return new bootstrap.Popover(popoverTriggerEl);
+        //     });
+
+        //     // Form validation enhancement
+        //     $('form').on('submit', function() {
+        //         var form = $(this);
+        //         var isValid = true;
+
+        //         // Check required fields
+        //         form.find('input[required], select[required], textarea[required]').each(function() {
+        //             if (!$(this).val().trim()) {
+        //                 $(this).addClass('is-invalid');
+        //                 isValid = false;
+        //             } else {
+        //                 $(this).removeClass('is-invalid');
+        //             }
+        //         });
+
+        //         return isValid;
+        //     });
+
+        //     // Real-time notification updates
+        //     if (typeof signalR !== 'undefined') {
+        //         // SignalR connection for real-time updates
+        //         const connection = new signalR.HubConnectionBuilder()
+        //             .withUrl("/notificationHub")
+        //             .build();
+
+        //         connection.start().then(function () {
+        //             console.log("SignalR Connected");
+        //         }).catch(function (err) {
+        //             console.error(err.toString());
+        //         });
+
+        //         connection.on("ReceiveNotification", function (message) {
+        //             // Update notification count
+        //             var count = parseInt($('#notificationCount').text()) + 1;
+        //             $('#notificationCount').text(count);
+                    
+        //             // Show toast notification
+        //             showToast('إشعار جديد', message, 'info');
+        //         });
+        //     }
+        // });
+
+        // // Toast notification function
+        // function showToast(title, message, type = 'info') {
+        //     var toastHtml = `
+        //         <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        //             <div class="d-flex">
+        //                 <div class="toast-body">
+        //                     <strong>${title}</strong><br>
+        //                     ${message}
+        //                 </div>
+        //                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        //             </div>
+        //         </div>
+        //     `;
             
-            var toastContainer = $('#toastContainer');
-            if (toastContainer.length === 0) {
-                $('body').append('<div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
-                toastContainer = $('#toastContainer');
-            }
+        //     var toastContainer = $('#toastContainer');
+        //     if (toastContainer.length === 0) {
+        //         $('body').append('<div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
+        //         toastContainer = $('#toastContainer');
+        //     }
             
-            toastContainer.append(toastHtml);
-            var toast = new bootstrap.Toast(toastContainer.find('.toast').last()[0]);
-            toast.show();
-        }
+        //     toastContainer.append(toastHtml);
+        //     var toast = new bootstrap.Toast(toastContainer.find('.toast').last()[0]);
+        //     toast.show();
+        // }
 
-        // Global error handler
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-            showToast('خطأ', 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.', 'danger');
-        });
+        // // Global error handler
+        // window.addEventListener('error', function(e) {
+        //     console.error('Global error:', e.error);
+        //     showToast('خطأ', 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.', 'danger');
+        // });
 
-        // Service Worker registration for PWA support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful');
-                }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
+        // // Service Worker registration for PWA support
+        // if ('serviceWorker' in navigator) {
+        //     window.addEventListener('load', function() {
+        //         navigator.serviceWorker.register('/sw.js').then(function(registration) {
+        //             console.log('ServiceWorker registration successful');
+        //         }, function(err) {
+        //             console.log('ServiceWorker registration failed: ', err);
+        //         });
+        //     });
+        // }
     </script>
 </body>
 </html>

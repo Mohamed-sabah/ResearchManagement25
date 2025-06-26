@@ -173,7 +173,7 @@ namespace ResearchManagement.Web.Controllers
         }
 
         // GET: Research/Create
-        [Authorize(Roles = "Researcher,Admin")]
+        [Authorize(Roles = "Researcher,SystemAdmin")]
         public async Task<IActionResult> Create()
         {
             try
@@ -201,7 +201,7 @@ namespace ResearchManagement.Web.Controllers
         // POST: Research/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Researcher,Admin")]
+        [Authorize(Roles = "Researcher,SystemAdmin")]
         public async Task<IActionResult> Create(CreateResearchViewModel model, List<IFormFile> files)
         {
             try
@@ -267,7 +267,7 @@ namespace ResearchManagement.Web.Controllers
         }
 
         //// GET: Research/Edit/5
-        [Authorize(Roles = "Researcher,Admin")]
+        [Authorize(Roles = "Researcher,SystemAdmin")]
         public async Task<IActionResult> Edit(int id)
         {
             try
@@ -576,7 +576,7 @@ namespace ResearchManagement.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Researcher,Admin")]
+        [Authorize(Roles = "Researcher,SystemAdmin")]
         public async Task<IActionResult> Edit(int id, CreateResearchViewModel model, List<IFormFile> files)
         {
             _logger.LogInformation("بدء تعديل البحث {ResearchId} من قبل المستخدم {UserId}", id, GetCurrentUserId());
@@ -830,7 +830,7 @@ namespace ResearchManagement.Web.Controllers
         // POST: Research/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Researcher,Admin")]
+        [Authorize(Roles = "Researcher,SystemAdmin")] 
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -929,7 +929,7 @@ namespace ResearchManagement.Web.Controllers
         // POST: Research/UpdateStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "TrackManager,Admin")]
+        [Authorize(Roles = "TrackManager,SystemAdmin")]       
         public async Task<IActionResult> UpdateStatus(int researchId, ResearchStatus newStatus, string? notes)
         {
             try
@@ -960,7 +960,7 @@ namespace ResearchManagement.Web.Controllers
         }
 
         // GET: Research/MyResearches
-        [Authorize(Roles = "Researcher,Admin")]
+        [Authorize(Roles = "Researcher,SystemAdmin")]
         public async Task<IActionResult> MyResearches()
         {
             try
