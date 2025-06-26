@@ -414,12 +414,190 @@ namespace ResearchManagement.Web.Controllers
 
 
 
-        // POST: Research/Edit/5
+        //        // POST: Research/Edit/5
+        //        [HttpPost]
+        //        [ValidateAntiForgeryToken]
+        //        [Authorize(Roles = "Researcher,Admin")]
+        //        public async Task<IActionResult> Edit(int id, CreateResearchViewModel model, List<IFormFile> files)
+        //        {
+        //            try
+        //            {
+        //                if (id != model.ResearchId)
+        //                {
+        //                    return NotFound();
+        //                }
+
+        //                var user = await GetCurrentUserAsync();
+        //                if (user == null)
+        //                    return RedirectToAction("Login", "Account");
+
+        //                // إعادة تهيئة القوائم في حالة الخطأ
+        //                model.ResearchTypeOptions = GetResearchTypeOptions();
+        //                model.LanguageOptions = GetLanguageOptions();
+        //                model.TrackOptions = GetTrackOptions();
+
+        //                // التحقق من صحة النموذج
+        //                if (!ModelState.IsValid)
+        //                {
+        //                    _logger.LogWarning("نموذج غير صالح عند تعديل البحث {ResearchId}", id);
+
+        //                    // عرض تفاصيل أخطاء التحقق
+        //                    foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
+        //                    {
+        //                        _logger.LogWarning("خطأ في التحقق: {Error}", modelError.ErrorMessage);
+        //                    }
+
+        //                    return View(model);
+        //                }
+
+        //                // التحقق من وجود البحث
+        //                var existingResearch = await _mediator.Send(new GetResearchByIdQuery(id, user.Id));
+        //                if (existingResearch == null)
+        //                {
+        //                    _logger.LogWarning("محاولة تعديل بحث غير موجود أو غير مصرح به: {ResearchId}", id);
+        //                    TempData["ErrorMessage"] = "البحث غير موجود أو ليس لديك صلاحية لتعديله";
+        //                    return RedirectToAction(nameof(Index));
+        //                }
+
+        //                // تحويل ViewModel إلى DTO
+        //                var updateResearchDto = _mapper.Map<CreateResearchDto>(model);
+
+        //                // معالجة الملفات المرفوعة
+        //                if (files?.Any() == true)
+        //                {
+        //                    var uploadedFiles = new List<ResearchFileDto>();
+        //                    var failedFiles = new List<string>();
+
+        //                    foreach (var file in files)
+        //                    {
+        //                        if (file.Length > 0)
+        //                        {
+        //                            try
+        //                            {
+        //                                // التحقق من نوع الملف
+        //                                var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
+        //                                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        //                                if (!allowedExtensions.Contains(fileExtension))
+        //                                {
+        //                                    failedFiles.Add($"{file.FileName}: نوع الملف غير مدعوم");
+        //                                    continue;
+        //                                }
+
+        //                                // التحقق من حجم الملف (50 ميجابايت)
+        //                                if (file.Length > 50 * 1024 * 1024)
+        //                                {
+        //                                    failedFiles.Add($"{file.FileName}: حجم الملف كبير جداً (الحد الأقصى 50 ميجابايت)");
+        //                                    continue;
+        //                                }
+
+        //                                using var memoryStream = new MemoryStream();
+        //                                await file.CopyToAsync(memoryStream);
+        //                                var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+        //                                var filePath = await _fileService.UploadFileAsync(
+        //                                    memoryStream.ToArray(),
+        //                                    fileName,
+        //                                    file.ContentType);
+
+        //                                uploadedFiles.Add(new ResearchFileDto
+        //                                {
+        //                                    FileName = fileName,
+        //                                    OriginalFileName = file.FileName,
+        //                                    FilePath = filePath,
+        //                                    ContentType = file.ContentType,
+        //                                    FileSize = file.Length,
+        //                                    FileType = GetFileType(file.ContentType),
+        //                                    Description = "ملف محدث"
+        //                                });
+
+        //                                _logger.LogInformation("تم رفع الملف بنجاح: {FileName}", file.FileName);
+        //                            }
+        //                            catch (Exception fileEx)
+        //                            {
+        //                                _logger.LogError(fileEx, "خطأ في رفع الملف: {FileName}", file.FileName);
+        //                                failedFiles.Add($"{file.FileName}: {fileEx.Message}");
+        //                            }
+        //                        }
+        //                    }
+
+        //                    if (failedFiles.Any())
+        //                    {
+        //                        TempData["WarningMessage"] = $"فشل رفع بعض الملفات: {string.Join(", ", failedFiles)}";
+        //                    }
+
+        //                    updateResearchDto.Files = uploadedFiles;
+        //                }
+
+        //                // إنشاء الأمر
+        //                var command = new UpdateResearchCommand
+        //                {
+        //                    ResearchId = id,
+        //                    Research = updateResearchDto,
+        //                    UserId = user.Id
+        //                };
+
+        //                // تنفيذ الأمر
+        //                var result = await _mediator.Send(command);
+
+
+        //            if (result)
+        //            {
+        //                TempData["SuccessMessage"] = "تم تحديث البحث بنجاح";
+        //                _logger.LogInformation("تم تحديث البحث {ResearchId} بنجاح بواسطة المستخدم {UserId}", id, user.Id);
+        //                return RedirectToAction(nameof(Details), new { id });
+        //            }
+        //            else
+        //            {
+        //                _logger.LogWarning("فشل تحديث البحث {ResearchId} - لم يُرجع الأمر نتيجة إيجابية", id);
+        //                TempData["ErrorMessage"] = "فشل في تحديث البحث. يرجى المحاولة مرة أخرى";
+        //                return View(model);
+        //            }
+        //        }
+        //        catch (InvalidOperationException opEx)
+        //        {
+        //            _logger.LogError(opEx, "خطأ في العملية أثناء تحديث البحث {ResearchId}", id);
+        //            TempData["ErrorMessage"] = opEx.Message;
+
+        //            // إعادة تهيئة القوائم
+        //            model.ResearchTypeOptions = GetResearchTypeOptions();
+        //        model.LanguageOptions = GetLanguageOptions();
+        //        model.TrackOptions = GetTrackOptions();
+
+        //            return View(model);
+        //    }
+
+        //}
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Researcher,Admin")]
         public async Task<IActionResult> Edit(int id, CreateResearchViewModel model, List<IFormFile> files)
         {
+            _logger.LogInformation("بدء تعديل البحث {ResearchId} من قبل المستخدم {UserId}", id, GetCurrentUserId());
+
+            // طباعة تفاصيل النموذج للتشخيص
+            _logger.LogInformation("بيانات النموذج: Title={Title}, ResearchType={ResearchType}, Track={Track}",
+                model.Title, model.ResearchType, model.Track);
+
+            // طباعة أخطاء النموذج
+            if (!ModelState.IsValid)
+            {
+                foreach (var key in ModelState.Keys)
+                {
+                    var errors = ModelState[key].Errors;
+                    foreach (var error in errors)
+                    {
+                        _logger.LogWarning("خطأ في النموذج - {Key}: {Error}", key, error.ErrorMessage);
+                    }
+                }
+            }
+
+
+
+
+
+
             try
             {
                 if (id != model.ResearchId)
@@ -431,7 +609,7 @@ namespace ResearchManagement.Web.Controllers
                 if (user == null)
                     return RedirectToAction("Login", "Account");
 
-                // إعادة تهيئة القوائم في حالة الخطأ
+                // إعادة تهيئة القوائم دائماً
                 model.ResearchTypeOptions = GetResearchTypeOptions();
                 model.LanguageOptions = GetLanguageOptions();
                 model.TrackOptions = GetTrackOptions();
@@ -440,95 +618,34 @@ namespace ResearchManagement.Web.Controllers
                 if (!ModelState.IsValid)
                 {
                     _logger.LogWarning("نموذج غير صالح عند تعديل البحث {ResearchId}", id);
-
-                    // عرض تفاصيل أخطاء التحقق
-                    foreach (var modelError in ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        _logger.LogWarning("خطأ في التحقق: {Error}", modelError.ErrorMessage);
-                    }
-
                     return View(model);
                 }
 
-                // التحقق من وجود البحث
+                // التحقق من وجود البحث والصلاحيات
                 var existingResearch = await _mediator.Send(new GetResearchByIdQuery(id, user.Id));
                 if (existingResearch == null)
                 {
-                    _logger.LogWarning("محاولة تعديل بحث غير موجود أو غير مصرح به: {ResearchId}", id);
                     TempData["ErrorMessage"] = "البحث غير موجود أو ليس لديك صلاحية لتعديله";
                     return RedirectToAction(nameof(Index));
+                }
+
+                if (!CanEditResearch(existingResearch, user))
+                {
+                    TempData["ErrorMessage"] = "لا يمكن تعديل هذا البحث في حالته الحالية";
+                    return RedirectToAction(nameof(Details), new { id });
                 }
 
                 // تحويل ViewModel إلى DTO
                 var updateResearchDto = _mapper.Map<CreateResearchDto>(model);
 
-                // معالجة الملفات المرفوعة
+                // معالجة الملفات الجديدة
                 if (files?.Any() == true)
                 {
-                    var uploadedFiles = new List<ResearchFileDto>();
-                    var failedFiles = new List<string>();
-
-                    foreach (var file in files)
-                    {
-                        if (file.Length > 0)
-                        {
-                            try
-                            {
-                                // التحقق من نوع الملف
-                                var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
-                                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-                                if (!allowedExtensions.Contains(fileExtension))
-                                {
-                                    failedFiles.Add($"{file.FileName}: نوع الملف غير مدعوم");
-                                    continue;
-                                }
-
-                                // التحقق من حجم الملف (50 ميجابايت)
-                                if (file.Length > 50 * 1024 * 1024)
-                                {
-                                    failedFiles.Add($"{file.FileName}: حجم الملف كبير جداً (الحد الأقصى 50 ميجابايت)");
-                                    continue;
-                                }
-
-                                using var memoryStream = new MemoryStream();
-                                await file.CopyToAsync(memoryStream);
-                                var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-                                var filePath = await _fileService.UploadFileAsync(
-                                    memoryStream.ToArray(),
-                                    fileName,
-                                    file.ContentType);
-
-                                uploadedFiles.Add(new ResearchFileDto
-                                {
-                                    FileName = fileName,
-                                    OriginalFileName = file.FileName,
-                                    FilePath = filePath,
-                                    ContentType = file.ContentType,
-                                    FileSize = file.Length,
-                                    FileType = GetFileType(file.ContentType),
-                                    Description = "ملف محدث"
-                                });
-
-                                _logger.LogInformation("تم رفع الملف بنجاح: {FileName}", file.FileName);
-                            }
-                            catch (Exception fileEx)
-                            {
-                                _logger.LogError(fileEx, "خطأ في رفع الملف: {FileName}", file.FileName);
-                                failedFiles.Add($"{file.FileName}: {fileEx.Message}");
-                            }
-                        }
-                    }
-
-                    if (failedFiles.Any())
-                    {
-                        TempData["WarningMessage"] = $"فشل رفع بعض الملفات: {string.Join(", ", failedFiles)}";
-                    }
-
+                    var uploadedFiles = await ProcessUploadedFiles(files, user.Id);
                     updateResearchDto.Files = uploadedFiles;
                 }
 
-                // إنشاء الأمر
+                // تنفيذ الأمر
                 var command = new UpdateResearchCommand
                 {
                     ResearchId = id,
@@ -536,37 +653,88 @@ namespace ResearchManagement.Web.Controllers
                     UserId = user.Id
                 };
 
-                // تنفيذ الأمر
                 var result = await _mediator.Send(command);
 
-
-            if (result)
-            {
-                TempData["SuccessMessage"] = "تم تحديث البحث بنجاح";
-                _logger.LogInformation("تم تحديث البحث {ResearchId} بنجاح بواسطة المستخدم {UserId}", id, user.Id);
-                return RedirectToAction(nameof(Details), new { id });
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "تم تحديث البحث بنجاح";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "فشل في تحديث البحث";
+                    return View(model);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("فشل تحديث البحث {ResearchId} - لم يُرجع الأمر نتيجة إيجابية", id);
-                TempData["ErrorMessage"] = "فشل في تحديث البحث. يرجى المحاولة مرة أخرى";
+                _logger.LogError(ex, "خطأ في تعديل البحث {ResearchId}", id);
+                TempData["ErrorMessage"] = $"حدث خطأ: {ex.Message}";
+
+                // إعادة تهيئة القوائم
+                model.ResearchTypeOptions = GetResearchTypeOptions();
+                model.LanguageOptions = GetLanguageOptions();
+                model.TrackOptions = GetTrackOptions();
+
                 return View(model);
             }
         }
-        catch (InvalidOperationException opEx)
+
+        // دالة مساعدة لمعالجة الملفات
+        private async Task<List<ResearchFileDto>> ProcessUploadedFiles(List<IFormFile> files, string userId)
         {
-            _logger.LogError(opEx, "خطأ في العملية أثناء تحديث البحث {ResearchId}", id);
-            TempData["ErrorMessage"] = opEx.Message;
+            var uploadedFiles = new List<ResearchFileDto>();
 
-            // إعادة تهيئة القوائم
-            model.ResearchTypeOptions = GetResearchTypeOptions();
-        model.LanguageOptions = GetLanguageOptions();
-        model.TrackOptions = GetTrackOptions();
+            foreach (var file in files)
+            {
+                if (file.Length > 0)
+                {
+                    try
+                    {
+                        // التحقق من نوع الملف
+                        var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
+                        var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            return View(model);
-    }
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            continue; // تجاهل الملفات غير المدعومة
+                        }
 
-}
+                        // التحقق من حجم الملف
+                        if (file.Length > 50 * 1024 * 1024) // 50MB
+                        {
+                            continue; // تجاهل الملفات الكبيرة
+                        }
+
+                        using var memoryStream = new MemoryStream();
+                        await file.CopyToAsync(memoryStream);
+                        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                        var filePath = await _fileService.UploadFileAsync(
+                            memoryStream.ToArray(),
+                            fileName,
+                            file.ContentType);
+
+                        uploadedFiles.Add(new ResearchFileDto
+                        {
+                            FileName = fileName,
+                            OriginalFileName = file.FileName,
+                            FilePath = filePath,
+                            ContentType = file.ContentType,
+                            FileSize = file.Length,
+                            FileType = GetFileType(file.ContentType),
+                            Description = "ملف محدث"
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "خطأ في رفع الملف: {FileName}", file.FileName);
+                        // استمر في معالجة الملفات الأخرى
+                    }
+                }
+            }
+
+            return uploadedFiles;
+        }
 
 
 
@@ -576,8 +744,26 @@ namespace ResearchManagement.Web.Controllers
 
 
 
-// Helper methods لإنشاء القوائم المنسدلة
-private List<SelectListItem> GetResearchTypeOptions()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Helper methods لإنشاء القوائم المنسدلة
+        private List<SelectListItem> GetResearchTypeOptions()
         {
             return Enum.GetValues<ResearchType>()
                 .Select(x => new SelectListItem
