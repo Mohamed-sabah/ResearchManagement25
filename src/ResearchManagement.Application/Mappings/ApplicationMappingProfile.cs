@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ResearchManagement.Application.DTOs;
 using ResearchManagement.Domain.Entities;
+using ResearchManagement.Domain.Enums;
 
 namespace ResearchManagement.Application.Mappings
 {
@@ -134,6 +135,104 @@ namespace ResearchManagement.Application.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.Research, opt => opt.Ignore())
                 .ForMember(dest => dest.Review, opt => opt.Ignore());
+
+
+            ConfigureReviewMappings();
+            ConfigureTrackManagerMappings();
         }
+
+
+        private void ConfigureReviewMappings()
+        {
+            // Review Mappings
+            CreateMap<Review, ReviewDto>()
+                .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src =>
+                    $"{src.Reviewer.FirstName} {src.Reviewer.LastName}"))
+                .ForMember(dest => dest.ReviewerEmail, opt => opt.MapFrom(src => src.Reviewer.Email))
+                .ForMember(dest => dest.ResearchTitle, opt => opt.MapFrom(src => src.Research.Title))
+                .ForMember(dest => dest.ResearchTitleEn, opt => opt.MapFrom(src => src.Research.TitleEn))
+                .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Research.Track))
+                .ForMember(dest => dest.ResearchAuthor, opt => opt.MapFrom(src =>
+                    $"{src.Research.SubmittedBy.FirstName} {src.Research.SubmittedBy.LastName}"))
+                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => src.Research.Authors))
+                .ForMember(dest => dest.Files, opt => opt.MapFrom(src => src.Research.Files.Where(f => f.IsActive)))
+                .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.OverallScore));
+
+            CreateMap<CreateReviewDto, Review>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.ReviewerId, opt => opt.Ignore())
+                .ForMember(dest => dest.AssignedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.Deadline, opt => opt.MapFrom(src => src.Deadline ?? DateTime.UtcNow.AddDays(14)))
+                .ForMember(dest => dest.IsCompleted, opt => opt.MapFrom(src => false))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.Research, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviewer, opt => opt.Ignore())
+                .ForMember(dest => dest.ReviewFiles, opt => opt.Ignore());
+
+            CreateMap<UpdateReviewDto, Review>()
+                .ForMember(dest => dest.ReviewerId, opt => opt.Ignore())
+                .ForMember(dest => dest.AssignedDate, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.Research, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviewer, opt => opt.Ignore())
+                .ForMember(dest => dest.ReviewFiles, opt => opt.Ignore());
+
+            // Reviewer Mappings
+            CreateMap<User, ReviewerDto>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
+
+            // Research Summary Mappings
+            CreateMap<Research, ResearchSummaryDto>()
+                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => src.Authors.Where(a => !a.IsDeleted)))
+                .ForMember(dest => dest.Files, opt => opt.MapFrom(src => src.Files.Where(f => f.IsActive)));
+
+            CreateMap<ResearchDto, ResearchSummaryDto>();
+        }
+
+        private void ConfigureTrackManagerMappings()
+        {
+            // Track Manager Mappings
+            CreateMap<TrackManager, TrackManagerDto>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src =>
+                    $"{src.User.FirstName} {src.User.LastName}"))
+                .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email));
+
+            CreateMap<TrackReviewer, TrackReviewerDto>()
+                .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src =>
+                    $"{src.Reviewer.FirstName} {src.Reviewer.LastName}"))
+                .ForMember(dest => dest.ReviewerEmail, opt => opt.MapFrom(src => src.Reviewer.Email));
+        }
+
+        // Constructor should call these methods
+        //public ApplicationMappingProfile()
+        //{
+        //    // ... existing mappings ...
+        //    ConfigureReviewMappings();
+        //    ConfigureTrackManagerMappings();
+        //}
+    }
+
+    // Additional DTOs
+    public class TrackManagerDto
+    {
+        public int Id { get; set; }
+        public ResearchTrack Track { get; set; }
+        public string TrackDescription { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string UserEmail { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class TrackReviewerDto
+    {
+        public int Id { get; set; }
+        public ResearchTrack Track { get; set; }
+        public bool IsActive { get; set; }
+        public string ReviewerId { get; set; } = string.Empty;
+        public string ReviewerName { get; set; } = string.Empty;
+        public string ReviewerEmail { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 }

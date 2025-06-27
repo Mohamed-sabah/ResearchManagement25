@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ResearchManagement.Domain.Enums;
 
+
+
 namespace ResearchManagement.Application.Interfaces
 {
     public interface IEmailService
     {
-        Task SendResearchSubmissionConfirmationAsync(int researchId);
-        Task SendResearchStatusUpdateAsync(int researchId, ResearchStatus oldStatus, ResearchStatus newStatus);
-        Task SendReviewAssignmentAsync(int reviewId);
+        Task SendReviewAssignmentNotificationAsync(int reviewId);
         Task SendReviewCompletedNotificationAsync(int reviewId);
-        Task SendDeadlineReminderAsync(string userId, string subject, string message);
-        Task SendBulkNotificationAsync(IEnumerable<string> userIds, string subject, string message);
+        Task SendResearchStatusUpdateAsync(int researchId, ResearchStatus oldStatus, ResearchStatus newStatus);
+        Task SendReviewerRemovalNotificationAsync(string reviewerId, string researchTitle, string? reason);
+        Task SendResearchSubmissionConfirmationAsync(int researchId);
+        Task SendDeadlineReminderAsync(int reviewId, int daysRemaining);
+        Task SendOverdueNotificationAsync(int reviewId);
+        Task SendWelcomeEmailAsync(string userId);
+        Task SendPasswordResetEmailAsync(string userId, string resetToken);
     }
 }

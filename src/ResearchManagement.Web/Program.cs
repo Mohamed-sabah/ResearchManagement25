@@ -252,7 +252,7 @@ builder.Services.AddMediatR(cfg =>
 // 3. สำฬํแ Query Handlers
 builder.Services.AddScoped<IRequestHandler<GetResearchByIdQuery, ResearchDto?>, GetResearchByIdQueryHandler>();
 builder.Services.AddScoped<IRequestHandler<GetResearchFileByIdQuery, ResearchFileDto?>, GetResearchFileByIdQueryHandler>();
-builder.Services.AddScoped<IRequestHandler<GetResearchListQuery, PagedResult<ResearchDto>>, GetResearchListQueryHandler>();
+builder.Services.AddScoped<IRequestHandler<GetResearchListQuery, ResearchManagement.Application.Queries.Research.PagedResult<ResearchDto>>, GetResearchListQueryHandler>();
 
 
 
@@ -269,7 +269,7 @@ builder.Services.AddAutoMapper(typeof(ResearchManagement.Application.Mappings.Ap
 builder.Services.AddValidatorsFromAssembly(typeof(ResearchManagement.Application.Validators.CreateResearchDtoValidator).Assembly);
 
 // สำฬํแ Configuration Settings
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+//builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<FileUploadSettings>(builder.Configuration.GetSection("FileUploadSettings"));
 
 // สำฬํแ Controllers ใฺ Views

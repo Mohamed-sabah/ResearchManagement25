@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+
 using MediatR;
 using ResearchManagement.Application.DTOs;
 using ResearchManagement.Application.Interfaces;
+using ResearchManagement.Domain.Entities;
 
 namespace ResearchManagement.Application.Commands.Review
 {
@@ -40,31 +42,61 @@ namespace ResearchManagement.Application.Commands.Review
 
         public async Task<int> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
         {
+            // التحقق من وجود مراجعة سابقة للمراجع نفسه
+            var existingReview = await _reviewRepository.GetByResearchAndReviewerAsync(
+                request.Review.ResearchId, request.ReviewerId);
+
+            if (existingReview != null)
+                throw new InvalidOperationException("لقد تم تعيينك مسبقاً لمراجعة هذا البحث");
+
+            // إنشاء المراجعة
             var review = _mapper.Map<Domain.Entities.Review>(request.Review);
             review.ReviewerId = request.ReviewerId;
-            review.CompletedDate = DateTime.UtcNow;
+            review.AssignedDate = DateTime.UtcNow;
+            review.Deadline = request.Review.Deadline ?? DateTime.UtcNow.AddDays(14);
             review.IsCompleted = true;
+            review.CompletedDate = DateTime.UtcNow;
+            review.CreatedBy = request.ReviewerId;
 
             await _reviewRepository.AddAsync(review);
 
-            // تحديث حالة البحث
+            // تحديث حالة البحث بناءً على عدد المراجعات المكتملة
             var research = await _researchRepository.GetByIdAsync(request.Review.ResearchId);
             if (research != null)
             {
-                var completedReviews = await _reviewRepository.GetCompletedReviewsCountAsync(request.Review.ResearchId);
-
-                if (completedReviews >= 3)
-                {
-                    research.Status = Domain.Enums.ResearchStatus.UnderEvaluation;
-                }
+                await UpdateResearchStatus(research, request.Review.ResearchId);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // إرسال إشعار للباحث ومدير التراك
-            await _emailService.SendReviewCompletedNotificationAsync(review.Id);
+            // إرسال إشعارات
+            try
+            {
+                await _emailService.SendReviewCompletedNotificationAsync(review.Id);
+            }
+            catch (Exception ex)
+            {
+                // تسجيل الخطأ لكن لا توقف العملية
+                // يمكن إضافة logging هنا
+            }
 
             return review.Id;
+        }
+
+        private async Task UpdateResearchStatus(Domain.Entities.Research research, int researchId)
+        {
+            var completedReviewsCount = await _reviewRepository.GetCompletedReviewsCountAsync(researchId);
+
+            if (completedReviewsCount >= 3)
+            {
+                research.Status = Domain.Enums.ResearchStatus.UnderEvaluation;
+                research.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (research.Status == Domain.Enums.ResearchStatus.Submitted)
+            {
+                research.Status = Domain.Enums.ResearchStatus.UnderReview;
+                research.UpdatedAt = DateTime.UtcNow;
+            }
         }
     }
 }
