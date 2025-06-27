@@ -39,7 +39,7 @@ namespace ResearchManagement.Application.Queries.TrackManager
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<ResearchDto>> Handle(GetTrackResearchesQuery request, CancellationToken cancellationToken)
+        public async Task<DTOs.PagedResult<ResearchDto>> Handle(GetTrackResearchesQuery request, CancellationToken cancellationToken)
         {
             var trackManager = await _trackManagerRepository.GetByUserIdAsync(request.TrackManagerId);
             if (trackManager == null)

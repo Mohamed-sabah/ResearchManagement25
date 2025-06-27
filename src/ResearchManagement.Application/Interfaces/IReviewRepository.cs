@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ResearchManagement.Application.DTOs;
 using ResearchManagement.Application.Queries.Research;
 using ResearchManagement.Domain.Entities;
 
