@@ -443,6 +443,130 @@
     }
 </div>
 
+<!-- Status Management Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">
+                    <i class="fas fa-cog me-2"></i>إدارة حالة البحث
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateStatus" method="post" id="statusForm">
+                <div class="modal-body">
+                    <input type="hidden" name="researchId" value="@Model.Research.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الحالة الحالية:</label>
+                        <span class="badge @GetStatusBadgeClass(Model.Research.Status) fs-6">
+                            @GetStatusDisplayName(Model.Research.Status)
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">الحالة الجديدة: <span class="text-danger">*</span></label>
+                        <select name="newStatus" id="newStatus" class="form-select" required>
+                            <option value="">اختر الحالة الجديدة</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.UnderInitialReview)">قيد المراجعة الأولية</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.AssignedForReview)">موزع للتقييم</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.UnderReview)">قيد التقييم</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.UnderEvaluation)">تحت المراجعة</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions)">يتطلب تعديلات طفيفة</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions)">يتطلب تعديلات جوهرية</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.RevisionsUnderReview)">مراجعة التعديلات</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.Accepted)">مقبول</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.Rejected)">مرفوض</option>
+                            <option value="@((int)ResearchManagement.Domain.Enums.ResearchStatus.AwaitingFourthReviewer)">بانتظار المقيم الرابع</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            يرجى اختيار الحالة الجديدة
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">ملاحظات (اختياري):</label>
+                        <textarea name="notes" id="statusNotes" class="form-control" rows="3"
+                                  placeholder="أدخل أي ملاحظات حول تغيير الحالة..."></textarea>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ستصل هذه الملاحظات للباحث عبر البريد الإلكتروني
+                        </div>
+                    </div>
+
+                    <!-- Status Change Preview -->
+                    <div class="alert alert-info d-none" id="statusPreview">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>معاينة التغيير:</strong>
+                        <br>
+                        من: <span class="badge @GetStatusBadgeClass(Model.Research.Status)">@GetStatusDisplayName(Model.Research.Status)</span>
+                        إلى: <span id="newStatusBadge" class="badge"></span>
+                    </div>
+
+                    <!-- Validation warnings -->
+                    <div class="alert alert-warning d-none" id="statusWarning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="warningMessage"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>إلغاء
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="updateStatusBtn">
+                        <i class="fas fa-save me-2"></i>تحديث الحالة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@{
+    // Helper functions for status display
+    string GetStatusDisplayName(ResearchManagement.Domain.Enums.ResearchStatus status)
+    {
+        return status switch
+        {
+            ResearchManagement.Domain.Enums.ResearchStatus.Submitted => "مُقدم",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderInitialReview => "قيد المراجعة الأولية",
+            ResearchManagement.Domain.Enums.ResearchStatus.AssignedForReview => "موزع للتقييم",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderReview => "قيد التقييم",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderEvaluation => "تحت المراجعة",
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions => "يتطلب تعديلات طفيفة",
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions => "يتطلب تعديلات جوهرية",
+            ResearchManagement.Domain.Enums.ResearchStatus.RevisionsSubmitted => "تعديلات مُقدمة",
+            ResearchManagement.Domain.Enums.ResearchStatus.RevisionsUnderReview => "مراجعة التعديلات",
+            ResearchManagement.Domain.Enums.ResearchStatus.Accepted => "مقبول",
+            ResearchManagement.Domain.Enums.ResearchStatus.Rejected => "مرفوض",
+            ResearchManagement.Domain.Enums.ResearchStatus.Withdrawn => "منسحب",
+            ResearchManagement.Domain.Enums.ResearchStatus.AwaitingFourthReviewer => "بانتظار المقيم الرابع",
+            _ => status.ToString()
+        };
+    }
+
+    string GetStatusBadgeClass(ResearchManagement.Domain.Enums.ResearchStatus status)
+    {
+        return status switch
+        {
+            ResearchManagement.Domain.Enums.ResearchStatus.Submitted => "bg-info",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderInitialReview => "bg-warning",
+            ResearchManagement.Domain.Enums.ResearchStatus.AssignedForReview => "bg-primary",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderReview => "bg-primary",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderEvaluation => "bg-warning",
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions => "bg-warning",
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions => "bg-warning",
+            ResearchManagement.Domain.Enums.ResearchStatus.RevisionsSubmitted => "bg-info",
+            ResearchManagement.Domain.Enums.ResearchStatus.RevisionsUnderReview => "bg-primary",
+            ResearchManagement.Domain.Enums.ResearchStatus.Accepted => "bg-success",
+            ResearchManagement.Domain.Enums.ResearchStatus.Rejected => "bg-danger",
+            ResearchManagement.Domain.Enums.ResearchStatus.Withdrawn => "bg-secondary",
+            ResearchManagement.Domain.Enums.ResearchStatus.AwaitingFourthReviewer => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+}
+
 @section Styles {
     <style>
         .timeline {
@@ -570,3 +694,160 @@
         return $"{len:0.##} {sizes[order]}";
     }
 }
+@section Scripts{
+
+
+
+<script>
+$(document).ready(function() {
+    // Status management
+    $('#newStatus').on('change', function() {
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        
+        if (selectedValue) {
+            // Show preview
+            $('#statusPreview').removeClass('d-none');
+            $('#newStatusBadge').text(selectedText).attr('class', 'badge ' + getStatusBadgeClass(selectedValue));
+            
+            // Show warnings for specific status changes
+            showStatusWarnings(selectedValue);
+            
+            // Enable submit button
+            $('#updateStatusBtn').prop('disabled', false);
+        } else {
+            $('#statusPreview').addClass('d-none');
+            $('#statusWarning').addClass('d-none');
+            $('#updateStatusBtn').prop('disabled', true);
+        }
+    });
+
+    // Form submission
+    $('#statusForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        var newStatus = $('#newStatus').val();
+        var notes = $('#statusNotes').val();
+        var statusText = $('#newStatus').find('option:selected').text();
+        
+        if (!newStatus) {
+            $('#newStatus').addClass('is-invalid');
+            return false;
+        }
+        
+        // Confirmation dialog
+        if (confirm(`هل أنت متأكد من تغيير حالة البحث إلى "${statusText}"؟`)) {
+            var btn = $('#updateStatusBtn');
+            var originalText = btn.html();
+            
+            // Show loading state
+            btn.html('<span class="spinner-border spinner-border-sm me-2"></span>جاري التحديث...');
+            btn.prop('disabled', true);
+            
+            // Submit form
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "Research")',
+                type: 'POST',
+                data: {
+                    researchId: @Model.Research.Id,
+                    newStatus: newStatus,
+                    notes: notes,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        showToast('نجح التحديث', 'تم تحديث حالة البحث بنجاح', 'success');
+                        
+                        // Close modal
+                        $('#statusModal').modal('hide');
+                        
+                        // Reload page after short delay
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showToast('فشل التحديث', response.message || 'حدث خطأ في تحديث الحالة', 'error');
+                        btn.html(originalText);
+                        btn.prop('disabled', false);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showToast('خطأ', 'حدث خطأ في الاتصال بالخادم', 'error');
+                    btn.html(originalText);
+                    btn.prop('disabled', false);
+                }
+            });
+        }
+    });
+
+    // Reset form when modal is hidden
+    $('#statusModal').on('hidden.bs.modal', function() {
+        $('#statusForm')[0].reset();
+        $('#statusPreview').addClass('d-none');
+        $('#statusWarning').addClass('d-none');
+        $('#newStatus').removeClass('is-invalid');
+        $('#updateStatusBtn').prop('disabled', true);
+    });
+});
+
+function getStatusBadgeClass(statusValue) {
+    var statusClasses = {
+        '1': 'bg-info',      // Submitted
+        '2': 'bg-warning',   // UnderInitialReview
+        '3': 'bg-primary',   // AssignedForReview
+        '4': 'bg-primary',   // UnderReview
+        '5': 'bg-warning',   // UnderEvaluation
+        '6': 'bg-warning',   // RequiresMinorRevisions
+        '7': 'bg-warning',   // RequiresMajorRevisions
+        '8': 'bg-info',      // RevisionsSubmitted
+        '9': 'bg-primary',   // RevisionsUnderReview
+        '10': 'bg-success',  // Accepted
+        '11': 'bg-danger',   // Rejected
+        '12': 'bg-secondary', // Withdrawn
+        '13': 'bg-info'      // AwaitingFourthReviewer
+    };
+    
+    return statusClasses[statusValue] || 'bg-secondary';
+}
+
+function showStatusWarnings(statusValue) {
+    var warnings = {
+        '11': 'تنبيه: رفض البحث سيؤدي إلى إرسال إشعار للباحث ولن يمكن التراجع عن هذا القرار بسهولة.',
+        '10': 'تنبيه: قبول البحث سيؤدي إلى إرسال إشعار للباحث وبدء عملية النشر.',
+        '6': 'سيتم إرسال إشعار للباحث بضرورة إجراء تعديلات طفيفة.',
+        '7': 'سيتم إرسال إشعار للباحث بضرورة إجراء تعديلات جوهرية.'
+    };
+    
+    if (warnings[statusValue]) {
+        $('#warningMessage').text(warnings[statusValue]);
+        $('#statusWarning').removeClass('d-none');
+    } else {
+        $('#statusWarning').addClass('d-none');
+    }
+}
+
+function showToast(title, message, type) {
+    var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    
+    var toast = $(`
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="fas ${icon} me-2"></i>
+            <strong>${title}:</strong> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.alert('close');
+    }, 5000);
+}
+</script>
+}
+
+

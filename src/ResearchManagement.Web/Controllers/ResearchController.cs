@@ -927,16 +927,18 @@ namespace ResearchManagement.Web.Controllers
         }
 
         // POST: Research/UpdateStatus
+
+        // POST: Research/UpdateStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "TrackManager,SystemAdmin")]       
+        [Authorize(Roles = "TrackManager,SystemAdmin")]
         public async Task<IActionResult> UpdateStatus(int researchId, ResearchStatus newStatus, string? notes)
         {
             try
             {
                 var user = await GetCurrentUserAsync();
                 if (user == null)
-                    return RedirectToAction("Login", "Account");
+                    return Json(new { success = false, message = "المستخدم غير مصرح له" });
 
                 var command = new UpdateResearchStatusCommand
                 {
@@ -946,18 +948,57 @@ namespace ResearchManagement.Web.Controllers
                     UserId = user.Id
                 };
 
-                await _mediator.Send(command);
+                var result = await _mediator.Send(command);
 
-                TempData["SuccessMessage"] = "تم تحديث حالة البحث بنجاح";
-                return RedirectToAction(nameof(Details), new { id = researchId });
+                if (result)
+                {
+                    return Json(new { success = true, message = "تم تحديث حالة البحث بنجاح" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "فشل في تحديث حالة البحث" });
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating research status for ID: {ResearchId}", researchId);
-                TempData["ErrorMessage"] = "حدث خطأ أثناء تحديث حالة البحث";
-                return RedirectToAction(nameof(Details), new { id = researchId });
+                return Json(new { success = false, message = "حدث خطأ أثناء تحديث حالة البحث" });
             }
         }
+
+
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //[Authorize(Roles = "TrackManager,SystemAdmin")]       
+        //public async Task<IActionResult> UpdateStatus(int researchId, ResearchStatus newStatus, string? notes)
+        //{
+        //    try
+        //    {
+        //        var user = await GetCurrentUserAsync();
+        //        if (user == null)
+        //            return RedirectToAction("Login", "Account");
+
+        //        var command = new UpdateResearchStatusCommand
+        //        {
+        //            ResearchId = researchId,
+        //            NewStatus = newStatus,
+        //            Notes = notes,
+        //            UserId = user.Id
+        //        };
+
+        //        await _mediator.Send(command);
+
+        //        TempData["SuccessMessage"] = "تم تحديث حالة البحث بنجاح";
+        //        return RedirectToAction(nameof(Details), new { id = researchId });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error occurred while updating research status for ID: {ResearchId}", researchId);
+        //        TempData["ErrorMessage"] = "حدث خطأ أثناء تحديث حالة البحث";
+        //        return RedirectToAction(nameof(Details), new { id = researchId });
+        //    }
+        //}
 
         // GET: Research/MyResearches
         [Authorize(Roles = "Researcher,SystemAdmin")]
