@@ -1,272 +1,516 @@
-﻿@model ResearchManagement.Web.Models.ViewModels.TrackManagerDashboardViewModel
+﻿@model ResearchManagement.Web.Models.ViewModels.TrackManager.TrackManagerDashboardViewModel
 @{
-    ViewData["Title"] = "لوحة تحكم مدير التراك";
-    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    ViewData["Title"] = "لوحة تحكم مدير المسار";
+    Layout = "_LayoutNew";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h2><i class="fas fa-users-cog me-2"></i>لوحة تحكم مدير التراك - @Model.TrackName</h2>
-        <p class="text-muted">إدارة البحوث والمراجعين في التخصص</p>
-    </div>
-</div>
-
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h3 class="mb-0">@Model.TotalResearches</h3>
-                        <p class="mb-0">بحوث التخصص</p>
-                    </div>
-                    <div class="ms-3">
-                        <i class="fas fa-file-alt fa-2x opacity-75"></i>
-                    </div>
-                </div>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-users-cog me-2 text-primary"></i>لوحة تحكم مدير المسار</h2>
+            <h4 class="text-muted">@Model.TrackName</h4>
+            <p class="text-muted">إدارة البحوث والمراجعين في مسار @Model.TrackName</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                <a asp-action="Reports" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-bar me-2"></i>التقارير
+                </a>
+                <a asp-action="ReviewerManagement" class="btn btn-outline-info">
+                    <i class="fas fa-user-cog me-2"></i>إدارة المراجعين
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h3 class="mb-0">@Model.TotalReviewers</h3>
-                        <p class="mb-0">المراجعين</p>
-                    </div>
-                    <div class="ms-3">
-                        <i class="fas fa-users fa-2x opacity-75"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h3 class="mb-0">@Model.PendingAssignments</h3>
-                        <p class="mb-0">بحوث تحتاج توزيع</p>
-                    </div>
-                    <div class="ms-3">
-                        <i class="fas fa-user-plus fa-2x opacity-75"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <h3 class="mb-0">@Model.CompletedReviews</h3>
-                        <p class="mb-0">المراجعات المكتملة</p>
-                    </div>
-                    <div class="ms-3">
-                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>إجراءات إدارية</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <a href="@Url.Action("Index", "TrackManagement")" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-                            <i class="fas fa-list fa-2x mb-2"></i>
-                            <h6 class="mb-0">بحوث التخصص</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="@Url.Action("AssignReviews", "TrackManagement")" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-                            <i class="fas fa-user-plus fa-2x mb-2"></i>
-                            <h6 class="mb-0">توزيع المراجعات</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="@Url.Action("Reviewers", "TrackManagement")" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-                            <i class="fas fa-users fa-2x mb-2"></i>
-                            <h6 class="mb-0">إدارة المراجعين</h6>
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="@Url.Action("Reports", "TrackManagement")" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
-                            <h6 class="mb-0">تقارير التخصص</h6>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Research & Reviews -->
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-history me-2"></i>آخر البحوث</h5>
-            </div>
-            <div class="card-body">
-                @if (Model.RecentResearches.Any())
-                {
-                    <div class="list-group list-group-flush">
-                        @foreach (var research in Model.RecentResearches)
-                        {
-                            <div class="list-group-item d-flex justify-content-between align-items-start">
-                                <div class="ms-2 me-auto">
-                                    <div class="fw-bold">@research.Title</div>
-                                    <small class="text-muted">@research.SubmissionDate.ToString("yyyy/MM/dd")</small>
-                                </div>
-                                <span class="badge bg-primary rounded-pill">@research.Status</span>
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card bg-gradient-primary text-white h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                إجمالي البحوث
                             </div>
-                        }
+                            <div class="h5 mb-0 font-weight-bold">@Model.TotalResearches</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <p class="text-muted text-center">لا توجد بحوث حديثة</p>
-                }
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="Researches" class="text-white text-decoration-none">
+                        <small>عرض التفاصيل <i class="fas fa-arrow-left"></i></small>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>المراجعات المتأخرة</h5>
-            </div>
-            <div class="card-body">
-                @if (Model.OverdueReviews.Any())
-                {
-                    <div class="list-group list-group-flush">
-                        @foreach (var review in Model.OverdueReviews)
-                        {
-                            <div class="list-group-item d-flex justify-content-between align-items-start">
-                                <div class="ms-2 me-auto">
-                                    <div class="fw-bold">@review.Research.Title</div>
-                                    <small class="text-muted">المراجع: @review.Reviewer.FirstName @review.Reviewer.LastName</small>
-                                </div>
-                                <span class="badge bg-danger rounded-pill">متأخر</span>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card bg-gradient-warning text-white h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                في انتظار التوزيع
                             </div>
-                        }
+                            <div class="h5 mb-0 font-weight-bold">@Model.PendingAssignments</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <div class="text-center py-3">
-                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                        <p class="text-muted mb-0">لا توجد مراجعات متأخرة</p>
-                    </div>
-                }
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="Researches" asp-route-status="1" class="text-white text-decoration-none">
+                        <small>عرض البحوث المعلقة <i class="fas fa-arrow-left"></i></small>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-</div>">
-<div class="col-md-4 mb-3">
-    <a href="@Url.Action("Create", "Research")" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-        <i class="fas fa-plus fa-2x mb-2"></i>
-        <h6 class="mb-0">تقديم بحث جديد</h6>
-    </a>
-</div>
-<div class="col-md-4 mb-3">
-    <a href="@Url.Action("Index", "Research")" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-        <i class="fas fa-list fa-2x mb-2"></i>
-        <h6 class="mb-0">عرض بحوثي</h6>
-    </a>
-</div>
-<div class="col-md-4 mb-3">
-    <a href="@Url.Action("Profile", "Account")" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 120px;">
-        <i class="fas fa-user-edit fa-2x mb-2"></i>
-        <h6 class="mb-0">تحديث الملف الشخصي</h6>
-    </a>
-</div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card bg-gradient-info text-white h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                المراجعين النشطين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold">@Model.TotalReviewers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="ReviewerManagement" class="text-white text-decoration-none">
+                        <small>إدارة المراجعين <i class="fas fa-arrow-left"></i></small>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card bg-gradient-success text-white h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                المراجعات المكتملة
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold">@Model.CompletedReviews</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="#completedReviews" class="text-white text-decoration-none">
+                        <small>عرض التفاصيل <i class="fas fa-arrow-left"></i></small>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Recent Researches -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-history me-2"></i>آخر البحوث المقدمة</h5>
-                <a href="@Url.Action("Index", "Research")" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-gradient-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>إجراءات سريعة</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="sendReminders()">
+                                <i class="fas fa-bell d-block mb-2"></i>
+                                إرسال تذكيرات
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                @if (Model.RecentResearches.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>العنوان</th>
-                                    <th>التخصص</th>
-                                    <th>الحالة</th>
-                                    <th>تاريخ التقديم</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var research in Model.RecentResearches)
-                                {
-                                    <tr>
-                                        <td>
-                                            <strong>@research.Title</strong>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-info">@research.Track</span>
-                                        </td>
-                                        <td>
-                                            @{
-                                                var statusClass = research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Accepted ? "success" :
-                                                research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Rejected ? "danger" :
-                                                research.Status == ResearchManagement.Domain.Enums.ResearchStatus.UnderReview ? "warning" : "secondary";
+        </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                        <i class="fas fa-clock me-2"></i>البحوث المعلقة (@Model.PendingResearches.Count)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="needingReviewers-tab" data-bs-toggle="tab" data-bs-target="#needingReviewers" type="button" role="tab">
+                        <i class="fas fa-user-plus me-2"></i>تحتاج مراجعين (@Model.ResearchesNeedingReviewers.Count)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="overdue-tab" data-bs-toggle="tab" data-bs-target="#overdue" type="button" role="tab">
+                        <i class="fas fa-exclamation-triangle me-2"></i>متأخرة (@Model.OverdueReviews.Count)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recent-tab" data-bs-toggle="tab" data-bs-target="#recent" type="button" role="tab">
+                        <i class="fas fa-history me-2"></i>البحوث الحديثة
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab content -->
+            <div class="tab-content" id="dashboardTabsContent">
+                <!-- Pending Researches -->
+                <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">البحوث في انتظار التوزيع</h6>
+                            @if (Model.PendingResearches.Any())
+                            {
+                                <button class="btn btn-sm btn-primary" onclick="selectAllPending()">
+                                    <i class="fas fa-check-square me-1"></i>تحديد الكل
+                                </button>
+                            }
+                        </div>
+                        <div class="card-body">
+                            @if (Model.PendingResearches.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="5%">
+                                                    <input type="checkbox" id="selectAllPendingCheckbox" onclick="toggleAllPending()">
+                                                </th>
+                                                <th width="40%">عنوان البحث</th>
+                                                <th width="20%">المؤلف</th>
+                                                <th width="15%">تاريخ التقديم</th>
+                                                <th width="10%">الحالة</th>
+                                                <th width="10%">الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var research in Model.PendingResearches)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <input type="checkbox" class="pending-research" value="@research.Id">
+                                                    </td>
+                                                    <td>
+                                                        <a asp-controller="Research" asp-action="Details" asp-route-id="@research.Id" class="text-decoration-none">
+                                                            <strong>@research.Title</strong>
+                                                        </a>
+                                                        @if (!string.IsNullOrEmpty(research.TitleEn))
+                                                        {
+                                                            <br><small class="text-muted">@research.TitleEn</small>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-user me-2"></i>
+                                                            @research.SubmittedBy.FirstName @research.SubmittedBy.LastName
+                                                        </div>
+                                                        <small class="text-muted">@research.SubmittedBy.Email</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-muted">@research.SubmissionDate.ToString("dd/MM/yyyy")</span>
+                                                        <br><small class="text-muted">@research.SubmissionDate.ToString("HH:mm")</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-warning">مُقدم</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a asp-action="AssignReviewers" asp-route-researchId="@research.Id" 
+                                                               class="btn btn-sm btn-outline-primary" title="تعيين مراجعين">
+                                                                <i class="fas fa-user-plus"></i>
+                                                            </a>
+                                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                                    onclick="quickStatusUpdate(@research.Id, 'UnderInitialReview')" title="بدء المراجعة">
+                                                                <i class="fas fa-play"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             }
-                                            <span class="status-badge bg-@statusClass text-white">@research.Status</span>
-                                        </td>
-                                        <td>@research.SubmissionDate.ToString("yyyy/MM/dd")</td>
-                                        <td>
-                                            <a href="@Url.Action("Details", "Research", new { id = research.Id })" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye me-1"></i>عرض
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Bulk Actions for Pending -->
+                                <div class="mt-3">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAssignReviewers()">
+                                            <i class="fas fa-users me-1"></i>تعيين مراجعين للمحدد
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success" onclick="bulkUpdateStatus('UnderInitialReview')">
+                                            <i class="fas fa-play me-1"></i>بدء المراجعة للمحدد
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                    <h5 class="text-muted">رائع! لا توجد بحوث معلقة</h5>
+                                    <p class="text-muted">جميع البحوث المقدمة تم توزيعها للمراجعة</p>
+                                </div>
+                            }
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <div class="text-center py-4">
-                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">لا توجد بحوث مقدمة بعد</h5>
-                        <p class="text-muted">ابدأ بتقديم أول بحث لك</p>
-                        <a href="@Url.Action("Create", "Research")" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>تقديم بحث جديد
-                        </a>
+                </div>
+
+                <!-- Researches Needing Reviewers -->
+                <div class="tab-pane fade" id="needingReviewers" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">البحوث التي تحتاج مراجعين إضافيين</h6>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.ResearchesNeedingReviewers.Any())
+                            {
+                                <div class="row">
+                                    @foreach (var research in Model.ResearchesNeedingReviewers)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card h-100 border-warning">
+                                                <div class="card-header bg-warning bg-opacity-10">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <small class="text-warning fw-bold">
+                                                            <i class="fas fa-users me-1"></i>
+                                                            @research.Reviews.Count/3 مراجعين
+                                                        </small>
+                                                        <span class="badge bg-warning">يحتاج مراجعين</span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        <a asp-controller="Research" asp-action="Details" asp-route-id="@research.Id" 
+                                                           class="text-decoration-none">@research.Title</a>
+                                                    </h6>
+                                                    <p class="card-text">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            @research.SubmittedBy.FirstName @research.SubmittedBy.LastName
+                                                        </small>
+                                                    </p>
+                                                    <p class="card-text">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-calendar me-1"></i>
+                                                            @research.SubmissionDate.ToString("dd/MM/yyyy")
+                                                        </small>
+                                                    </p>
+                                                    
+                                                    <!-- Current Reviewers -->
+                                                    @if (research.Reviews.Any())
+                                                    {
+                                                        <div class="mb-2">
+                                                            <small class="text-muted">المراجعين الحاليين:</small>
+                                                            @foreach (var review in research.Reviews)
+                                                            {
+                                                                <div class="badge bg-info me-1 mb-1">
+                                                                    @review.Reviewer.FirstName @review.Reviewer.LastName
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <div class="card-footer bg-transparent">
+                                                    <a asp-action="AssignReviewers" asp-route-researchId="@research.Id" 
+                                                       class="btn btn-sm btn-warning w-100">
+                                                        <i class="fas fa-user-plus me-1"></i>إضافة مراجعين
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-success mb-3"></i>
+                                    <h5 class="text-muted">ممتاز! جميع البحوث لديها مراجعين كافيين</h5>
+                                    <p class="text-muted">جميع البحوث قيد المراجعة لديها العدد المطلوب من المراجعين</p>
+                                </div>
+                            }
+                        </div>
                     </div>
-                }
+                </div>
+
+                <!-- Overdue Reviews -->
+                <div class="tab-pane fade" id="overdue" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>المراجعات المتأخرة</h6>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.OverdueReviews.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>البحث</th>
+                                                <th>المراجع</th>
+                                                <th>الموعد النهائي</th>
+                                                <th>متأخر بـ</th>
+                                                <th>الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var review in Model.OverdueReviews.OrderBy(r => r.Deadline))
+                                            {
+                                                <tr class="table-warning">
+                                                    <td>
+                                                        <a asp-controller="Research" asp-action="Details" asp-route-id="@review.ResearchId" 
+                                                           class="text-decoration-none">
+                                                            <strong>@review.Research.Title</strong>
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-user-circle me-2 text-warning"></i>
+                                                            @review.Reviewer.FirstName @review.Reviewer.LastName
+                                                        </div>
+                                                        <small class="text-muted">@review.Reviewer.Email</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="text-danger fw-bold">
+                                                            @review.Deadline.ToString("dd/MM/yyyy HH:mm")
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-danger">
+                                                            @((DateTime.UtcNow - review.Deadline).Days) يوم
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <button type="button" class="btn btn-sm btn-outline-warning" 
+                                                                    onclick="sendReminder(@review.Id)" title="إرسال تذكير">
+                                                                <i class="fas fa-bell"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                                    onclick="extendDeadline(@review.Id)" title="تمديد الموعد">
+                                                                <i class="fas fa-calendar-plus"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                    onclick="reassignReviewer(@review.Id)" title="إعادة تعيين">
+                                                                <i class="fas fa-user-times"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Bulk Actions for Overdue -->
+                                <div class="mt-3">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="sendBulkReminders()">
+                                            <i class="fas fa-bell me-1"></i>إرسال تذكيرات جماعية
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="bulkExtendDeadlines()">
+                                            <i class="fas fa-calendar-plus me-1"></i>تمديد جماعي
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                    <h5 class="text-muted">ممتاز! لا توجد مراجعات متأخرة</h5>
+                                    <p class="text-muted">جميع المراجعات ضمن المواعيد المحددة</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Researches -->
+                <div class="tab-pane fade" id="recent" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">آخر البحوث المقدمة</h6>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.RecentResearches.Any())
+                            {
+                                <div class="row">
+                                    @foreach (var research in Model.RecentResearches)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card h-100">
+                                                <div class="card-header">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="badge @GetStatusBadgeClass(research.Status)">
+                                                            @GetStatusDisplayName(research.Status)
+                                                        </span>
+                                                        <small class="text-muted">@research.SubmissionDate.ToString("dd/MM")</small>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <h6 class="card-title">
+                                                        <a asp-controller="Research" asp-action="Details" asp-route-id="@research.Id" 
+                                                           class="text-decoration-none">@research.Title</a>
+                                                    </h6>
+                                                    <p class="card-text">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            @research.SubmittedBy.FirstName @research.SubmittedBy.LastName
+                                                        </small>
+                                                    </p>
+                                                    <p class="card-text">
+                                                        <small class="text-muted">
+                                                            المراجعات: @research.Reviews.Count(r => r.IsCompleted)/@research.Reviews.Count
+                                                        </small>
+                                                    </p>
+                                                </div>
+                                                <div class="card-footer bg-transparent">
+                                                    <div class="btn-group w-100" role="group">
+                                                        <a asp-controller="Research" asp-action="Details" asp-route-id="@research.Id" 
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        @if (research.Status == ResearchManagement.Domain.Enums.ResearchStatus.Submitted)
+                                                        {
+                                                            <a asp-action="AssignReviewers" asp-route-researchId="@research.Id" 
+                                                               class="btn btn-sm btn-outline-success">
+                                                                <i class="fas fa-user-plus"></i>
+                                                            </a>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">لا توجد بحوث حديثة</h5>
+                                    <p class="text-muted">لم يتم تقديم أي بحوث مؤخراً</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -274,6 +518,236 @@
 
 @section Scripts {
     <script>
-        console.log('Researcher Dashboard loaded');
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[title]').tooltip();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(function() {
+                location.reload();
+            }, 300000);
+        });
+
+        // Pending research selection functions
+        function toggleAllPending() {
+            const selectAll = document.getElementById('selectAllPendingCheckbox');
+            const checkboxes = document.querySelectorAll('.pending-research');
+            
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        function selectAllPending() {
+            const checkboxes = document.querySelectorAll('.pending-research');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = true;
+            });
+            document.getElementById('selectAllPendingCheckbox').checked = true;
+        }
+
+        // Quick status update
+        function quickStatusUpdate(researchId, newStatus) {
+            if (confirm('هل أنت متأكد من تحديث حالة هذا البحث؟')) {
+                $.ajax({
+                    url: '@Url.Action("UpdateResearchStatus")',
+                    type: 'POST',
+                    data: {
+                        researchId: researchId,
+                        newStatus: newStatus,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('نجح التحديث', response.message, 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showToast('خطأ', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('خطأ', 'حدث خطأ في الاتصال بالخادم', 'error');
+                    }
+                });
+            }
+        }
+
+        // Bulk operations
+        function bulkAssignReviewers() {
+            const selected = getSelectedResearches();
+            if (selected.length === 0) {
+                showToast('تنبيه', 'يرجى تحديد البحوث أولاً', 'warning');
+                return;
+            }
+            
+            // Redirect to bulk assignment page or show modal
+            window.location.href = `@Url.Action("BulkAssignReviewers")?ids=${selected.join(',')}`;
+        }
+
+        function bulkUpdateStatus(newStatus) {
+            const selected = getSelectedResearches();
+            if (selected.length === 0) {
+                showToast('تنبيه', 'يرجى تحديد البحوث أولاً', 'warning');
+                return;
+            }
+            
+            if (confirm(`هل أنت متأكد من تحديث حالة ${selected.length} بحث؟`)) {
+                $.ajax({
+                    url: '@Url.Action("BulkUpdateStatus")',
+                    type: 'POST',
+                    data: {
+                        researchIds: selected,
+                        newStatus: newStatus,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('نجح التحديث', `تم تحديث ${selected.length} بحث بنجاح`, 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showToast('خطأ', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('خطأ', 'حدث خطأ في الاتصال بالخادم', 'error');
+                    }
+                });
+            }
+        }
+
+        function getSelectedResearches() {
+            const selected = [];
+            document.querySelectorAll('.pending-research:checked').forEach(function(checkbox) {
+                selected.push(parseInt(checkbox.value));
+            });
+            return selected;
+        }
+
+        // Reminder functions
+        function sendReminder(reviewId) {
+            $.ajax({
+                url: '@Url.Action("SendReminder")',
+                type: 'POST',
+                data: {
+                    reviewId: reviewId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showToast('تم الإرسال', 'تم إرسال التذكير بنجاح', 'success');
+                    } else {
+                        showToast('خطأ', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showToast('خطأ', 'حدث خطأ في إرسال التذكير', 'error');
+                }
+            });
+        }
+
+        function extendDeadline(reviewId) {
+            const days = prompt('كم يوم تريد تمديد الموعد النهائي؟', '7');
+            if (days && !isNaN(days) && days > 0) {
+                $.ajax({
+                    url: '@Url.Action("ExtendDeadline")',
+                    type: 'POST',
+                    data: {
+                        reviewId: reviewId,
+                        additionalDays: parseInt(days),
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('تم التمديد', `تم تمديد الموعد النهائي ${days} أيام`, 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showToast('خطأ', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('خطأ', 'حدث خطأ في تمديد الموعد', 'error');
+                    }
+                });
+            }
+        }
+
+        function reassignReviewer(reviewId) {
+            if (confirm('هل أنت متأكد من إعادة تعيين هذه المراجعة؟')) {
+                window.location.href = `@Url.Action("ReassignReviewer")?reviewId=${reviewId}`;
+            }
+        }
+
+        // Quick actions
+        function generateQuickReport() {
+            window.open('@Url.Action("QuickReport")', '_blank');
+        }
+
+        function sendReminders() {
+            if (confirm('هل تريد إرسال تذكيرات لجميع المراجعات المتأخرة؟')) {
+                $.ajax({
+                    url: '@Url.Action("SendBulkReminders")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('تم الإرسال', `تم إرسال ${response.count} تذكير`, 'success');
+                        } else {
+                            showToast('خطأ', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('خطأ', 'حدث خطأ في إرسال التذكيرات', 'error');
+                    }
+                });
+            }
+        }
+
+        // Toast notification function
+        function showToast(title, message, type = 'info') {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                             type === 'error' ? 'alert-danger' : 
+                             type === 'warning' ? 'alert-warning' : 'alert-info';
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-circle' : 
+                        type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            
+            const toast = $(`
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <i class="fas ${icon} me-2"></i>
+                    <strong>${title}:</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            
+            $('body').append(toast);
+            
+            setTimeout(() => {
+                toast.alert('close');
+            }, 5000);
+        }
     </script>
 }
+
+@functions {
+    private string GetStatusDisplayName(ResearchManagement.Domain.Enums.ResearchStatus status)
+    {
+        return status switch
+        {
+            ResearchManagement.Domain.Enums.ResearchStatus.Submitted => "مُقدم",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderReview => "قيد المراجعة",
+            ResearchManagement.Domain.Enums.ResearchStatus.UnderInitialReview => "المراجعة الأولية",
+            ResearchManagement.Domain.Enums.ResearchStatus.Accepted => "مقبول",
+            ResearchManagement.Domain.Enums.ResearchStatus.Rejected => "مرفوض",
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMinorRevisions => "تعديلات طفيفة",
+            ResearchManagement.Domain.Enums.ResearchStatus.RequiresMajorRevisions => "تعديلات كبيرة",
+            ResearchManagement.Domain.Enums.ResearchStatus.Withdrawn => "منسحب",
+            ResearchManagement.Domain.Enums.ResearchStatus.Published => "منشور",
+            _ => "غير محدد"
+        };
+    }
+}
+
